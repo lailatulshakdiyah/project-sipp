@@ -11,7 +11,7 @@ export default function KegiatanPatroli() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
-  const [selectedDate, setSelectedDate] = useState(""); // new: tanggal dipilih
+  const [selectedDate, setSelectedDate] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -19,40 +19,71 @@ export default function KegiatanPatroli() {
     if (!tanggal) return;
     setIsLoading(true);
     setError(null);
+  
     try {
-      const formattedDate = tanggal.split("-").reverse().join("-"); // format ke DD-MM-YYYY
+      // Gunakan langsung format YYYY-MM-DD
+      const formattedDate = tanggal;
       console.log(`Tanggal yang dikirim ke API: ${formattedDate}`);
-
+  
       const response = await fetch(`https://sipongi.menlhk.go.id/sipp-karhutla/api/karhutla/list?tanggal_patroli=${formattedDate}`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
+  
       const result = await response.json();
-      console.log(result);
-
-      // Pastikan ada data pada result.data
-      if (result && result.data && Array.isArray(result.data)) {
-        // Parsing data jika tersedia
-        const parsedData = result.data.map((item) => ({
-          nama_daops: item.nama_daops || "-",
-          kegiatan: item.jenis_patroli || "-",
-          daerah: item.nama_daerah_operasi || "-",
-          ketua_regu: item.nama_ketua || "-",
-          aksi: item.jenis_patroli === "Pemadaman" ? "🔥" : item.kegiatan === "Rutin" ? "🔄" : item.kegiatan === "Terpadu" ? "🔗" : "🔵",
-        }));
-
-        setData(parsedData);
-      } else {
-        setError("Tidak ada data yang ditemukan.");
+  
+      // Pastikan ada data
+      if (!result.data || result.data.length === 0) {
+        console.log("Tidak ada data yang diterima dari API untuk tanggal tersebut.");
+        setIsLoading(false);
+        setData([]); // kosongkan data jika tidak ada
+        return;
       }
+  
+      // Proses data
+      const parsedData = result.data.flat().map((item, index) => {
+        const daerahPatroli = 
+          typeof item.id_daerah_patroli === "object"
+            ? item.id_daerah_patroli
+            : item.regu_patroli?.daerah ?? {};
+  
+        const reguPatroli = item.regu_patroli ?? {};
+  
+        console.log(`Item ${index + 1}:`);
+        console.log("  - nama_daops:", daerahPatroli?.nama_daops);
+        console.log("  - kegiatan:", item.kategori_patroli);
+        console.log("  - daerah:", daerahPatroli?.nama_wilayah);
+        console.log("  - ketua_regu:", reguPatroli?.ketua?.nama);
+  
+        return {
+          nama_daops: daerahPatroli?.nama_daops || "-",
+          kegiatan: item.kategori_patroli || "-",
+          daerah: daerahPatroli?.nama_wilayah || "-",
+          ketua_regu: reguPatroli?.ketua?.nama || "-",
+          aksi: (() => {
+            const jenis = item.id_regu_tim_patroli?.[0]?.jenis_patroli?.toLowerCase();
+            if (jenis === "pemadaman") return "🔥";
+            if (jenis === "rutin") return "🔄";
+            if (jenis === "terpadu") return "🔗";
+            if (jenis === "mandiri") return "🧭";
+            return "🔵";
+          })(),
+        };
+      });
+  
+      setData(parsedData);
+      console.log("Data final untuk table:", parsedData[0]);
     } catch (err) {
-      setError('Gagal memuat data');
+      console.error("Terjadi kesalahan saat fetch:", err);
+      setError(err.message);
+      setData([]); // kosongkan data saat error
     } finally {
       setIsLoading(false);
     }
-  };
+  };  
+
+  console.log("data nig", data)
 
   useEffect(() => {
     fetchData(selectedDate);
@@ -145,9 +176,9 @@ export default function KegiatanPatroli() {
                   selectedData.map((item, index) => (
                     <tr key={index} className="border-b">
                       <td className="py-2">{item.nama_daops}</td>
-                      <td className="py-2">{item.jenis_patroli}</td>
-                      <td className="py-2">{item.nama_daerah_operasidaerah}</td>
-                      <td className="py-2">{item.jenis_patroli}</td>
+                      <td className="py-2">{item.kegiatan}</td>
+                      <td className="py-2">{item.daerah}</td>
+                      <td className="py-2">{item.ketua_regu}</td>
                       <td className="py-2">
                         <FaMapMarkerAlt
                           size={30}

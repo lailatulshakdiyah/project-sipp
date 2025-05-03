@@ -1,5 +1,6 @@
 import { Roboto } from "next/font/google";
 import "./globals.css";
+// import { PatroliDateProvider } from "@/context/PatroliDateContext";
 
 // components
 // import Header from "@/components/header/Header";
@@ -23,7 +24,9 @@ export default function RootLayout({ children }) {
         {/* <Header /> */}
         {/* <Map /> */}
         {children}
+        {/* <PatroliDateProvider></PatroliDateProvider> */}
         {/* <Footer /> */}
+        
       </body>
     </html>
   );

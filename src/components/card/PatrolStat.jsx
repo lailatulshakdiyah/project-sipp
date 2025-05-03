@@ -1,11 +1,59 @@
 "use client"
+
 import { FaRegUser } from 'react-icons/fa6';
 import { LuCalendarDays } from 'react-icons/lu';
 import { HiUsers } from 'react-icons/hi';
 import { RiFireFill } from 'react-icons/ri';
 import CountUp from 'react-countup';
+import { useEffect, useState } from 'react';
 
 export default function PatrolStat() {
+  const [counts, setCounts] = useState({
+    mandiri: 0,
+    rutin: 0,
+    terpadu: 0,
+    pemadaman: 0,
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const fetchPatroliData = async (tanggal) => {
+    if (!tanggal) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch("https://sipongi.menlhk.go.id/sipp-karhutla/api/karhutla/list?tanggal_patroli=07-02-2025");
+      if (!response.ok) throw new Error("Gagal mengambil data");
+      const result = await response.json();
+      setData(result.data ?? {});
+      const data = result.data.flat();
+
+      const grouped = {
+        mandiri: 0,
+        rutin: 0,
+        terpadu: 0,
+        pemadaman: 0,
+      };
+
+      data.forEach(item => {
+        const jenis = item.id_regu_tim_patroli?.[0]?.jenis_patroli?.toLowerCase();
+        if (jenis === "mandiri") grouped.mandiri += 1;
+        else if (jenis === "rutin") grouped.rutin += 1;
+        else if (jenis === "terpadu") grouped.terpadu += 1;
+        else if (jenis === "pemadaman") grouped.pemadaman += 1;
+      });
+
+      setCounts(grouped);
+    } catch (err) {
+      console.error("Gagal fetch data patroli:", err);
+    }
+  }; 
+
+  useEffect(() => {
+    fetchPatroliData();
+  }, []);
+
   const patrolData = [
     {
       icon: <FaRegUser size={50} className="text-[#006BFF]" />,

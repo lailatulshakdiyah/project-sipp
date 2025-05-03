@@ -5,7 +5,6 @@ import favicon from '@/assets/img/sipp-favicon.png'
 import PatrolStat from '@/components/card/PatrolStat'
 import Footer from '@/components/footer/Footer'
 import HeaderLog from '@/components/header/HeaderLog'
-import DateInput from '@/components/card/DateInput'
 
 
 

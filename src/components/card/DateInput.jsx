@@ -1,30 +1,24 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
+import { usePatroliDate } from "@/context/PatroliDateContext";
 
-export default function DateInput({ onDateSubmit }) {
-  const [tanggal, setTanggal] = useState('')
+export default function DateInput() {
+  const { selectedDate, setSelectedDate } = usePatroliDate();
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    if (!tanggal) return
-    onDateSubmit(tanggal)
-  }
+  const handleChange = (e) => {
+    const value = e.target.value; // yyyy-mm-dd
+    const formatted = value.split("-").reverse().join("-"); // ke dd-mm-yyyy
+    setSelectedDate(formatted);
+  };
+
+  const defaultInputValue = selectedDate.split("-").reverse().join("-");
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-center gap-4 mb-6">
-      <input
-        type="date"
-        value={tanggal}
-        onChange={(e) => setTanggal(e.target.value)}
-        className="border p-2 rounded"
-      />
-      <button
-        type="submit"
-        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-      >
-        Tampilkan
-      </button>
-    </form>
-  )
+    <input
+      type="date"
+      className="border p-2 rounded"
+      onChange={handleChange}
+      value={defaultInputValue}
+    />
+  );
 }

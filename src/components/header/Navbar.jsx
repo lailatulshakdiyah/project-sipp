@@ -27,7 +27,6 @@ const navItems = [
   },
   {
     name: "Manajemen Pengguna",
-    path: "/manajemen-pengguna",
     children: [
       {
         name: "Penugasan",
@@ -108,7 +107,7 @@ const Navbar = () => {
                 className={`flex items-center gap-2 cursor-pointer hover:text-white ${itemClasses}`}
                 onClick={() => item.children && toggleDropdown(index)}
               >
-                <Link href={item.path}>{item.name}</Link>
+                <button>{item.name}</button>
                 {item.children && (
                   <span className="ml-1">
                     {openDropdown === index ? (

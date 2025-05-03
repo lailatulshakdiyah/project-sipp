@@ -6,6 +6,7 @@ import KegiatanPatroli from "@/components/card/KegiatanPatroli";
 import Map from "@/components/map/Map";
 
 export default function Home() {
+
   return (
     <main>
       <Header />
@@ -15,18 +16,18 @@ export default function Home() {
 
       {/* PatrolStat */}
       <div className="-mt-72 mb-10">
-        <PatrolStat />
+        <PatrolStat/>
       </div>
 
       <h1 className="text-4xl font-bold text-accent text-center">Kegiatan Patroli</h1>
-      
+
       {/* table kegiatan patroli */}
       <div>
         <KegiatanPatroli />
       </div>
 
       {/* footer section */}
-      <Footer/>
+      <Footer />
     </main>
   );
 }

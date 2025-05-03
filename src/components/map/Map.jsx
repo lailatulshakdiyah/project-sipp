@@ -4,7 +4,6 @@ import dynamic from "next/dynamic";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import markerIcon from "@/assets/img/marker-icon.png";
-//import DateInput from '@/components/card/DateInput'
 import { useState } from "react";
 
 
