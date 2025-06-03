@@ -9,22 +9,45 @@ import { TbLogin2 } from "react-icons/tb";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import ReCAPTCHA from "react-google-recaptcha";
+import { useRouter } from "next/navigation";
+import { login } from "@/lib/api/auth";
+import { useAuthStore } from "@/lib/store/authStore";
 
-const HeaderLog = () => {
+export default function HeaderLog() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [captchaValue, setCaptchaValue] = useState("");
+  const [error, setError] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const setAuth = useAuthStore((state) => state.setAuth);
 
-  const handleCaptchaChange = (value) => {
-    setCaptchaValue(value);  
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (captchaValue) {
-      console.log("Captcha valid, lanjutkan proses login!");
+    setError(""); 
+    setIsSubmitting(true);
+
+    const response = await login({ username, password });
+    console.log("Login Response:", response);
+
+    if (response.success && response.token) {
+      setAuth({
+        token: response.token,
+        user: response.user,
+        detail: response.user, // atau response.detail jika kamu ubah
+        isLoggedIn: true,
+      });
+
+      document.cookie = `authToken=${response.token}; path=/; max-age=3600`; // 1 jam
+      localStorage.setItem('authToken', response.token);
+
+      setOpen(false);
+      setIsSubmitting(false);
+      router.push("/");
     } else {
-      console.log("Captcha tidak valid, coba lagi!");
+      setError(response.error || "Login gagal, token kosong");
+      setIsSubmitting(false);
     }
   };
 
@@ -53,28 +76,25 @@ const HeaderLog = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2 text-accent">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="example@mail.com" required />
+              <Input id="email" name="email" type="email" placeholder="example@mail.com" value={username} onChange={(e) => setUsername(e.target.value)} required />
             </div>
             <div className="space-y-2 text-accent">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" placeholder="******" required />
+              <Input id="password" name="password" type="password" placeholder="******" value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
 
-            {/* Google reCAPTCHA */}
-            <div className="space-y-2">
-              <ReCAPTCHA
-                sitekey="6LdR8s4qAAAAAPNMRE7aO9aXoMgsvPD4Re7EAC6P"
-                onChange={handleCaptchaChange}
-                className="rounded-xl"
-              />
-            </div>
+            {error && <p className="text-red-500 text-sm">{error}</p>}
 
-            <Button type="submit" className="w-full rounded-xl bg-[#0099CC] text-white text-md">Login</Button>
+            <Button 
+              type="submit" 
+              className="w-full rounded-xl bg-[#0099CC] text-white text-md"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Loading..." : "Login"}
+            </Button>
           </form>
         </DialogContent>
       </Dialog>
     </div>
   );
 };
-
-export default HeaderLog;

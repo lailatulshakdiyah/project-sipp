@@ -1,41 +1,59 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiSearch, FiEdit, FiTrash2 } from "react-icons/fi";
 
-const dataOptions = {
-  Daops: [
-    { nama: "User A", nip: "123456", email: "usera@example.com", organisasi: "Daops Alfa", hakAkses: "Admin" },
-    { nama: "User B", nip: "789012", email: "userb@example.com", organisasi: "Daops Beta", hakAkses: "User" },
-  ],
-  Korwil: [
-    { nama: "User C", nip: "345678", email: "userc@example.com", organisasi: "Korwil X", hakAkses: "Admin" },
-    { nama: "User D", nip: "901234", email: "userd@example.com", organisasi: "Korwil Y", hakAkses: "User" },
-  ],
-  "Balai/Pusat": [
-    { nama: "User E", nip: "567890", email: "usere@example.com", organisasi: "Balai A", hakAkses: "Admin" },
-    { nama: "User F", nip: "234567", email: "userf@example.com", organisasi: "Balai B", hakAkses: "User" },
-  ],
-};
-
-const headers = ["Nama", "No Registrasi/NIP", "Email", "Organisasi", "Hak Akses", "Aksi"];
 const entriesPerPageOptions = [10, 25, 50, 100];
 
-export default function Akses() {
+export default function Akses({ categorizedData = {}, isLoading, error }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
-  const [selectedCategory, setSelectedCategory] = useState("Daops");
-  
-  const categories = Object.keys(dataOptions);
-  const filteredData = dataOptions[selectedCategory].filter((item) =>
-    Object.values(item).some((val) => val.toString().toLowerCase().includes(searchTerm.toLowerCase()))
+  // const [selectedCategory, setSelectedCategory] = useState("Daops");
+
+  const headers = ["Nama", "No Registrasi/NIP", "Email", "Organisasi", "Hak Akses", "Aksi"];
+  const categories = Object.keys(categorizedData);
+  const defaultCategory = categories[0] || "";
+  const [selectedCategory, setSelectedCategory] = useState(defaultCategory);
+
+  const currentCategoryData = categorizedData[selectedCategory] || [];
+  const filteredData = currentCategoryData.filter((item) =>
+    Object.values(item).some((val) =>
+      val.toString().toLowerCase().includes(searchTerm.toLowerCase())
+    )
   );
   
   const totalEntries = filteredData.length;
   const totalPages = Math.ceil(totalEntries / entriesPerPage);
   const startIndex = (currentPage - 1) * entriesPerPage;
   const selectedData = filteredData.slice(startIndex, startIndex + entriesPerPage);
+
+  const getPagination = (current, total) => {
+    const delta = 2;
+    const range = [];
+    const rangeWithDots = [];
+    let l;
+
+    for (let i = 1; i <= total; i++) {
+      if (i === 1 || i === total || (i >= current - delta && i <= current + delta)) {
+        range.push(i);
+      }
+    }
+
+    for (let i of range) {
+      if (l) {
+        if (i - l === 2) {
+          rangeWithDots.push(l + 1);
+        } else if (i - l > 2) {
+          rangeWithDots.push("...");
+        }
+      }
+      rangeWithDots.push(i);
+      l = i;
+    }
+
+    return rangeWithDots;
+  };
 
   return (
     <div className="max-w-5xl mx-auto p-4 bg-white shadow-xl rounded-xl mt-5 mb-5">
@@ -96,58 +114,82 @@ export default function Akses() {
             </tr>
           </thead>
           <tbody>
-            {selectedData.map((item, index) => (
-              <tr key={index} className="border-b">
-                <td className="py-2">{item.nama}</td>
-                <td className="py-2">{item.nip}</td>
-                <td className="py-2">{item.email}</td>
-                <td className="py-2">{item.organisasi}</td>
-                <td className="py-2">{item.hakAkses}</td>
-                <td className="py-2 flex gap-2">
-                  <button className="bg-[#DF6D14] text-white p-2 rounded-xl hover:bg-[#FCF596] hover:text-black">
-                    <FiEdit size={20} />
-                  </button>
-                  <button className="bg-red-600 text-white p-2 rounded-xl hover:bg-[#FFA09B] hover:text-black">
-                    <FiTrash2 size={20} />
-                  </button>
+            {selectedData.length === 0 ? (
+              <tr>
+                <td colSpan={headers.length} className="text-center py-4 text-gray-500">
+                  Tidak ada data ditemukan.
                 </td>
               </tr>
-            ))}
+            ) : (
+              selectedData.map((item, index) => (
+                <tr key={item.nip || index} className="border-b">
+                  <td className="py-2">{item.nama}</td>
+                  <td className="py-2">{item.nip}</td>
+                  <td className="py-2">{item.email}</td>
+                  <td className="py-2">{item.organisasi}</td>
+                  <td className="py-2">{item.hakAkses}</td>
+                  <td className="py-2">
+                    <div className="flex gap-2 items-center">
+                      <button className="bg-[#DF6D14] text-white p-2 rounded-xl hover:bg-[#FCF596] hover:text-black">
+                        <FiEdit size={20} />
+                      </button>
+                      <button className="bg-red-600 text-white p-2 rounded-xl hover:bg-[#FFA09B] hover:text-black">
+                        <FiTrash2 size={20} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
 
       {/* Pagination */}
-      <div className="flex justify-between items-center mt-4">
-        <p className="text-sm text-accent">
-          Showing {startIndex + 1} to {Math.min(startIndex + entriesPerPage, totalEntries)} of {totalEntries} entries
-        </p>
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className={`px-3 py-1 border rounded-xl ${currentPage === 1 ? "text-gray-400" : "hover:bg-gray-200"}`}
-          >
-            &lt; Previous
-          </button>
-          {[...Array(totalPages)].map((_, i) => (
+      {!isLoading && !error && (
+        <div className="flex justify-between items-center mt-4">
+          <p className="text-sm text-accent">
+            Showing {startIndex + 1} to {Math.min(startIndex + entriesPerPage, totalEntries)} of {totalEntries} entries
+          </p>
+          <div className="flex items-center space-x-1">
             <button
-              key={i}
-              onClick={() => setCurrentPage(i + 1)}
-              className={`px-3 py-1 border rounded-xl ${currentPage === i + 1 ? "bg-blue-500 text-white" : "hover:bg-gray-200"}`}
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className={`px-3 py-1 border rounded-xl ${
+                currentPage === 1 ? "text-gray-400 cursor-not-allowed" : "hover:bg-gray-200"
+              }`}
             >
-              {i + 1}
+              &lt; Previous
             </button>
-          ))}
-          <button
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
-            className={`px-3 py-1 border rounded-xl ${currentPage === totalPages ? "text-gray-400" : "hover:bg-gray-200"}`}
-          >
-            Next &gt;
-          </button>
+
+            {getPagination(currentPage, totalPages).map((page, index) =>
+              page === "..." ? (
+                <span key={index} className="px-3 py-1 text-gray-500">...</span>
+              ) : (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`px-3 py-1 border rounded-xl ${
+                    currentPage === page ? "bg-blue-500 text-white" : "hover:bg-gray-200"
+                  }`}
+                >
+                  {page}
+                </button>
+              )
+            )}
+
+            <button
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className={`px-3 py-1 border rounded-xl ${
+                currentPage === totalPages ? "text-gray-400 cursor-not-allowed" : "hover:bg-gray-200"
+              }`}
+            >
+              Next &gt;
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );  
 }

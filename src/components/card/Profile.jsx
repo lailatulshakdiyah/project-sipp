@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 
-export default function ProfilePage() {
+export default function Profile() {
   const [profile, setProfile] = useState({
     accessLevel: "Admin",
     registrationNumber: "",

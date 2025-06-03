@@ -4,91 +4,13 @@ import { useState, useEffect } from "react";
 import { FiSearch } from "react-icons/fi";
 import { FaMapMarkerAlt } from "react-icons/fa";
 
-const entriesPerPageOptions = [10, 25, 50, 100];
-
-export default function KegiatanPatroli() {
-  const [data, setData] = useState([]);
+export default function KegiatanPatroli({ data, isLoading, error }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
-  const [selectedDate, setSelectedDate] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
 
-  const fetchData = async (tanggal) => {
-    if (!tanggal) return;
-    setIsLoading(true);
-    setError(null);
+  const entriesPerPageOptions = [10, 25, 50, 100];
   
-    try {
-      // Gunakan langsung format YYYY-MM-DD
-      const formattedDate = tanggal;
-      console.log(`Tanggal yang dikirim ke API: ${formattedDate}`);
-  
-      const response = await fetch(`https://sipongi.menlhk.go.id/sipp-karhutla/api/karhutla/list?tanggal_patroli=${formattedDate}`);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-  
-      const result = await response.json();
-  
-      // Pastikan ada data
-      if (!result.data || result.data.length === 0) {
-        console.log("Tidak ada data yang diterima dari API untuk tanggal tersebut.");
-        setIsLoading(false);
-        setData([]); // kosongkan data jika tidak ada
-        return;
-      }
-  
-      // Proses data
-      const parsedData = result.data.flat().map((item, index) => {
-        const daerahPatroli = 
-          typeof item.id_daerah_patroli === "object"
-            ? item.id_daerah_patroli
-            : item.regu_patroli?.daerah ?? {};
-  
-        const reguPatroli = item.regu_patroli ?? {};
-  
-        console.log(`Item ${index + 1}:`);
-        console.log("  - nama_daops:", daerahPatroli?.nama_daops);
-        console.log("  - kegiatan:", item.kategori_patroli);
-        console.log("  - daerah:", daerahPatroli?.nama_wilayah);
-        console.log("  - ketua_regu:", reguPatroli?.ketua?.nama);
-  
-        return {
-          nama_daops: daerahPatroli?.nama_daops || "-",
-          kegiatan: item.kategori_patroli || "-",
-          daerah: daerahPatroli?.nama_wilayah || "-",
-          ketua_regu: reguPatroli?.ketua?.nama || "-",
-          aksi: (() => {
-            const jenis = item.id_regu_tim_patroli?.[0]?.jenis_patroli?.toLowerCase();
-            if (jenis === "pemadaman") return "🔥";
-            if (jenis === "rutin") return "🔄";
-            if (jenis === "terpadu") return "🔗";
-            if (jenis === "mandiri") return "🧭";
-            return "🔵";
-          })(),
-        };
-      });
-  
-      setData(parsedData);
-      console.log("Data final untuk table:", parsedData[0]);
-    } catch (err) {
-      console.error("Terjadi kesalahan saat fetch:", err);
-      setError(err.message);
-      setData([]); // kosongkan data saat error
-    } finally {
-      setIsLoading(false);
-    }
-  };  
-
-  console.log("data nig", data)
-
-  useEffect(() => {
-    fetchData(selectedDate);
-  }, [selectedDate]); // setiap tanggal berubah, fetch data baru
-
   const filteredData = data.filter((item) =>
     item.kegiatan?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -98,30 +20,47 @@ export default function KegiatanPatroli() {
   const startIndex = (currentPage - 1) * entriesPerPage;
   const selectedData = filteredData.slice(startIndex, startIndex + entriesPerPage);
 
+  const aksiColorMap = {
+    "Patroli Mandiri": "#006BFF",
+    "Patroli Rutin": "#F9C132",
+    "Patroli Terpadu": "#52AF53",
+    "Pemadaman": "#FF0000",
+  };
+
+  const getPagination = (current, total) => {
+    const delta = 2;
+    const range = [];
+    const rangeWithDots = [];
+    let l;
+
+    for (let i = 1; i <= total; i++) {
+      if (i === 1 || i === total || (i >= current - delta && i <= current + delta)) {
+        range.push(i);
+      }
+    }
+
+    for (let i of range) {
+      if (l) {
+        if (i - l === 2) {
+          rangeWithDots.push(l + 1);
+        } else if (i - l > 2) {
+          rangeWithDots.push("...");
+        }
+      }
+      rangeWithDots.push(i);
+      l = i;
+    }
+
+    return rangeWithDots;
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div className="bg-white shadow-xl rounded-xl p-6">
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
-          {/* Date Picker */}
-          <div className="flex items-center space-x-2">
-            <label htmlFor="date" className="text-sm text-gray-700">
-              Pilih Tanggal:
-            </label>
-            <input
-              type="date"
-              id="date"
-              className="border border-gray-300 rounded-md px-2 py-1 text-sm"
-              value={selectedDate}
-              onChange={(e) => {
-                setSelectedDate(e.target.value);
-                setCurrentPage(1);
-              }}
-            />
-          </div>
-
-          {/* Entries Selection + Search */}
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+          {/* Entries Selection */}
+          <div className="w-full md:w-auto">
             <label htmlFor="entries" className="text-sm text-gray-700">
               Show{" "}
               <select
@@ -140,12 +79,14 @@ export default function KegiatanPatroli() {
               </select>{" "}
               entries
             </label>
-
-            <div className="relative">
+          </div>
+            {/* search bar */}
+          <div className="w-full md:w-auto flex justify-start md:justify-end">
+            <div className="relative w-full md:w-64">
               <input
                 type="text"
                 placeholder="Search..."
-                className="border px-3 py-1 pl-8 rounded-xl"
+                className="border px-3 py-1 pl-8 rounded-xl w-full"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -180,18 +121,7 @@ export default function KegiatanPatroli() {
                       <td className="py-2">{item.daerah}</td>
                       <td className="py-2">{item.ketua_regu}</td>
                       <td className="py-2">
-                        <FaMapMarkerAlt
-                          size={30}
-                          className={`${
-                            item.aksi === "🔥"
-                              ? "text-[#FF0000]"
-                              : item.aksi === "🔄"
-                              ? "text-[#F9C132]"
-                              : item.aksi === "🔗"
-                              ? "text-[#52AF53]"
-                              : "text-[#006BFF]"
-                          }`}
-                        />
+                        <FaMapMarkerAlt size={30} color={aksiColorMap[item.aksi] || "#9CA3AF"} />
                       </td>
                     </tr>
                   ))
@@ -210,37 +140,41 @@ export default function KegiatanPatroli() {
         {/* Footer Pagination */}
         {!isLoading && !error && (
           <div className="flex justify-between items-center mt-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-accent">
               Showing {startIndex + 1} to {Math.min(startIndex + entriesPerPage, totalEntries)} of {totalEntries} entries
             </p>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1">
               <button
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
                 className={`px-3 py-1 border rounded-xl ${
-                  currentPage === 1 ? "text-gray-400" : "hover:bg-gray-200"
+                  currentPage === 1 ? "text-gray-400 cursor-not-allowed" : "hover:bg-gray-200"
                 }`}
               >
                 &lt; Previous
               </button>
 
-              {[...Array(totalPages)].map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrentPage(i + 1)}
-                  className={`px-3 py-1 border rounded-xl ${
-                    currentPage === i + 1 ? "bg-blue-500 text-white" : "hover:bg-gray-200"
-                  }`}
-                >
-                  {i + 1}
-                </button>
-              ))}
+              {getPagination(currentPage, totalPages).map((page, index) =>
+                page === "..." ? (
+                  <span key={index} className="px-3 py-1 text-gray-500">...</span>
+                ) : (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-3 py-1 border rounded-xl ${
+                      currentPage === page ? "bg-blue-500 text-white" : "hover:bg-gray-200"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                )
+              )}
 
               <button
                 onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
                 className={`px-3 py-1 border rounded-xl ${
-                  currentPage === totalPages ? "text-gray-400" : "hover:bg-gray-200"
+                  currentPage === totalPages ? "text-gray-400 cursor-not-allowed" : "hover:bg-gray-200"
                 }`}
               >
                 Next &gt;

@@ -92,7 +92,7 @@ const Navbar = () => {
 
   const handleLogout = () => {
     logout();
-    router.replace("/login");
+    router.replace("/homepage");
   };
 
   return (
