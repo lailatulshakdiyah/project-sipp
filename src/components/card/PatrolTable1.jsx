@@ -1,169 +1,206 @@
 "use client";
 
-import { useState } from "react";
-import { FiSearch } from "react-icons/fi";
-import { FiEye, FiDownload } from "react-icons/fi";
+import { useState, useMemo, useEffect } from "react";
+import { FiSearch, FiEye, FiDownload } from "react-icons/fi";
 
-// Helper function untuk format tanggal
 const formatDate = (dateString) => {
+  if (!dateString) return "-";
   const months = [
     "Januari", "Februari", "Maret", "April", "Mei", "Juni",
     "Juli", "Agustus", "September", "Oktober", "November", "Desember"
   ];
   const date = new Date(dateString);
-  const day = date.getDate();
-  const month = months[date.getMonth()];
-  const year = date.getFullYear();
-  return `${day} ${month} ${year}`;
+  return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
 };
-
-const dataPatroli = [
-  { nomor: "ST001", jenis: "Rutin", mulai: "2025-01-12", selesai: "2025-01-22" },
-  { nomor: "ST002", jenis: "Pemadaman", mulai: "2025-01-14", selesai: "2025-01-24" },
-  { nomor: "ST003", jenis: "Terpadu", mulai: "2025-01-16", selesai: "2025-01-26" },
-  { nomor: "ST004", jenis: "Mandiri", mulai: "2025-01-18", selesai: "2025-01-28" },
-  { nomor: "ST005", jenis: "Pemadaman", mulai: "2025-01-20", selesai: "2025-01-30" },
-  { nomor: "ST006", jenis: "Terpadu", mulai: "2025-01-22", selesai: "2025-02-01" },
-  { nomor: "ST007", jenis: "Mandiri", mulai: "2025-01-24", selesai: "2025-02-03" },
-  { nomor: "ST008", jenis: "Rutin", mulai: "2025-01-26", selesai: "2025-02-05" },
-  { nomor: "ST009", jenis: "Mandiri", mulai: "2025-01-28", selesai: "2025-02-08" },
-  { nomor: "ST010", jenis: "Pemadaman", mulai: "2025-01-30", selesai: "2025-02-10" },
-  { nomor: "ST011", jenis: "Terpadu", mulai: "2025-01-24", selesai: "2025-01-25" },
-  { nomor: "ST012", jenis: "Rutin", mulai: "2025-01-10", selesai: "2025-02-20" },
-  { nomor: "ST013", jenis: "Mandiri", mulai: "2025-01-30", selesai: "2025-02-10" }, 
-  { nomor: "ST014", jenis: "Pemadaman", mulai: "2025-01-30", selesai: "2025-02-10" },
-  { nomor: "ST015", jenis: "Pemadaman", mulai: "2025-01-30", selesai: "2025-02-10" },
-];
 
 const entriesPerPageOptions = [10, 25, 50, 100];
 
-export default function PatroliTable1() {
+export default function PatroliTable1({ data = [], isLoading, error }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
 
-  // Filter data berdasarkan pencarian
-  const filteredData = dataPatroli.filter((item) =>
-    item.nomor.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
-  // Pagination
+  const filteredData = useMemo(() => {
+    return data.filter((item) =>
+      item.nomor?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [data, searchTerm]);
+
   const totalEntries = filteredData.length;
   const totalPages = Math.ceil(totalEntries / entriesPerPage);
   const startIndex = (currentPage - 1) * entriesPerPage;
   const selectedData = filteredData.slice(startIndex, startIndex + entriesPerPage);
 
+  const getPagination = (current, total) => {
+    const delta = 1;
+    const pagesToShow = [];
+
+    if (total <= 7) {
+      for (let i = 1; i <= total; i++) pagesToShow.push(i);
+      return pagesToShow;
+    }
+
+    pagesToShow.push(1);
+    if (current > 3) pagesToShow.push("...");
+
+    const startPage = Math.max(2, current - delta);
+    const endPage = Math.min(total - 1, current + delta);
+    for (let i = startPage; i <= endPage; i++) {
+      pagesToShow.push(i);
+    }
+
+    if (current < total - 2) pagesToShow.push("...");
+
+    pagesToShow.push(total);
+    return pagesToShow;
+  };
+
   return (
-    <div className="max-w-6xl mx-auto p-4 bg-white shadow-xl rounded-xl mb-5 mt-5">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-4">
-        {/* Entries per page */}
-        <div>
-          <label className="text-sm text-gray-600">
-            Show
-            <select
-              className="border px-2 py-1 mx-2"
-              value={entriesPerPage}
-              onChange={(e) => {
-                setEntriesPerPage(Number(e.target.value));
-                setCurrentPage(1);
-              }}
-            >
-              {entriesPerPageOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-            entries
-          </label>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="bg-white shadow-xl rounded-xl p-6">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+          <div className="w-full md:w-auto">
+            <label htmlFor="entries" className="text-sm text-gray-700">
+              Show{" "}
+              <select
+                className="border border-gray-300 rounded-md px-2 py-1 text-sm"
+                value={entriesPerPage}
+                onChange={(e) => {
+                  setEntriesPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+              >
+                {entriesPerPageOptions.map((option) => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>{" "}
+              entries
+            </label>
+          </div>
+
+          {/* Search bar */}
+          <div className="w-full md:w-auto flex justify-start md:justify-end">
+            <div className="relative w-full md:w-64">
+              <input
+                type="text"
+                placeholder="Search"
+                aria-label="Cari nomor surat"
+                className="border px-3 py-1 pl-8 rounded-xl w-full"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <FiSearch className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            </div>
+          </div>
         </div>
 
-        {/* Search Bar */}
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search..."
-            className="border px-3 py-1 pl-8 rounded-xl"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <FiSearch className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" />
-        </div>
-      </div>
+        {/* Loading / Error */}
+        {isLoading && <p className="text-center py-10">Loading...</p>}
+        {error && <p className="text-center text-red-500 py-10">{error}</p>}
 
-      {/* Tabel */}
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="border-b">
-              <th className="py-2 text-left">Nomor Surat</th>
-              <th className="py-2 text-left">Jenis Patroli</th>
-              <th className="py-2 text-left">Tanggal Mulai</th>
-              <th className="py-2 text-left">Tanggal Selesai</th>
-              <th className="py-2 text-left">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {selectedData.map((item, index) => (
-              <tr key={index} className="border-b">
-                <td className="py-2">{item.nomor}</td>
-                <td className="py-2">{item.jenis}</td>
-                <td className="py-2">{formatDate(item.mulai)}</td>
-                <td className="py-2">{formatDate(item.selesai)}</td>
-                <td className="py-2">
-                  {/* Container untuk ikon aksi */}
-                  <div className="flex gap-2">
-                    <button className="bg-blue-600 text-white hover:text-black p-2 rounded-xl hover:bg-[#0099CC]">
-                      <FiEye size={20} />
-                    </button>
-                    <button className="bg-green-600 text-white hover:text-black p-2 rounded-xl hover:bg-[#A7D477]">
-                      <FiDownload size={20} />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+        {/* Tabel */}
+        {!isLoading && !error && (
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b bg-gray-100">
+                  <th className="py-2 px-4 text-left">Nomor Surat</th>
+                  <th className="py-2 px-2 text-left">Jenis Patroli</th>
+                  <th className="py-2 px-2 text-left">Tanggal Mulai</th>
+                  <th className="py-2 px-2 text-left">Tanggal Selesai</th>
+                  <th className="py-2 px-2 text-center pr-6">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {selectedData.length > 0 ? (
+                  selectedData.map((item, index) => (
+                    <tr key={item.id || item.nomor || index} className="border-b hover:bg-gray-50">
+                      <td className="py-2 px-4">{item.nomor}</td>
+                      <td className="py-2 px-2">{item.jenis_surat}</td>
+                      <td className="py-2 px-2">{formatDate(item.tanggal_awal)}</td>
+                      <td className="py-2 px-2">{formatDate(item.tanggal_akhir)}</td>
+                      <td className="py-2 px-2">
+                        <div className="flex justify-center gap-2">
+                          <button
+                            onClick={() => alert(`Lihat surat: ${item.nomor}`)}
+                            className="bg-blue-600 text-white hover:text-black p-2 rounded-xl hover:bg-[#0099CC]"
+                          >
+                            <FiEye size={18} />
+                          </button>
+                          <button
+                            onClick={() => alert(`Unduh surat: ${item.nomor}`)}
+                            className="bg-green-600 text-white hover:text-black p-2 rounded-xl hover:bg-[#A7D477]"
+                          >
+                            <FiDownload size={18} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="5" className="py-4 text-center text-gray-500">
+                      Tidak ada data yang ditemukan.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
 
-      {/* Footer */}
-      <div className="flex justify-between items-center mt-4">
-        <p className="text-sm text-gray-600">
-          Showing {startIndex + 1} to {Math.min(startIndex + entriesPerPage, totalEntries)} of {totalEntries} entries
-        </p>
+        {/* Footer Pagination */}
+        {!isLoading && !error && totalEntries > 0 && (
+          <div className="flex justify-between items-center mt-4 flex-wrap gap-2">
+            <p className="text-sm text-accent">
+              Show {startIndex + 1} to {Math.min(startIndex + entriesPerPage, totalEntries)} of {totalEntries} entries
+            </p>
+            <div className="flex items-center flex-wrap gap-1">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className={`px-3 py-1 border rounded-xl ${
+                  currentPage === 1 ? "text-gray-400 cursor-not-allowed" : "hover:bg-gray-200"
+                }`}
+              >
+                &lt; Previous
+              </button>
 
-        {/* Pagination */}
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className={`px-3 py-1 border rounded-xl ${currentPage === 1 ? "text-gray-400" : "hover:bg-gray-200"}`}
-          >
-            &lt; Previous
-          </button>
+              {getPagination(currentPage, totalPages).map((page, index) =>
+                page === "..." ? (
+                  <span key={index} className="px-3 py-1 text-gray-500">...</span>
+                ) : (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-3 py-1 border rounded-xl ${
+                      currentPage === page
+                        ? "bg-blue-600 text-white font-semibold"
+                        : "hover:bg-gray-100"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                )
+              )}
 
-          {[...Array(totalPages)].map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrentPage(i + 1)}
-              className={`px-3 py-1 border rounded-xl ${
-                currentPage === i + 1 ? "bg-blue-500 text-white" : "hover:bg-gray-200"
-              }`}
-            >
-              {i + 1}
-            </button>
-          ))}
-
-          <button
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
-            className={`px-3 py-1 border rounded-xl ${currentPage === totalPages ? "text-gray-400" : "hover:bg-gray-200"}`}
-          >
-            Next &gt;
-          </button>
-        </div>
+              <button
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className={`px-3 py-1 border rounded-xl ${
+                  currentPage === totalPages ? "text-gray-400 cursor-not-allowed" : "hover:bg-gray-200"
+                }`}
+              >
+                Next &gt;
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

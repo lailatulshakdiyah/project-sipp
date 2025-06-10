@@ -1,23 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { FiSearch } from "react-icons/fi";
-import { FiEye, FiTrash2, FiEdit } from "react-icons/fi";
+import { FiSearch, FiEye, FiTrash2, FiEdit } from "react-icons/fi";
 
-// Helper function untuk format tanggal
 const formatDate = (dateString) => {
   const months = [
     "Januari", "Februari", "Maret", "April", "Mei", "Juni",
     "Juli", "Agustus", "September", "Oktober", "November", "Desember"
   ];
   const date = new Date(dateString);
-  const day = date.getDate();
-  const month = months[date.getMonth()];
-  const year = date.getFullYear();
-  return `${day} ${month} ${year}`;
+  return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
 };
 
-const dataPatroli = [
+const dataPatroliDummy = [
   { nomor: "ST001", jenis: "Rutin", mulai: "2025-01-12", selesai: "2025-01-22" },
   { nomor: "ST002", jenis: "Terpadu", mulai: "2025-01-14", selesai: "2025-01-24" },
   { nomor: "ST003", jenis: "Mandiri", mulai: "2025-01-16", selesai: "2025-01-26" },
@@ -41,49 +36,66 @@ export default function PatroliTable2() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [dataPatroli, setDataPatroli] = useState(dataPatroliDummy);
+  const [editItem, setEditItem] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
-  // Filter data berdasarkan pencarian
   const filteredData = dataPatroli.filter((item) =>
-    item.nomor.toLowerCase().includes(searchTerm.toLowerCase())
+    item.nomor.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.jenis.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Pagination
   const totalEntries = filteredData.length;
   const totalPages = Math.ceil(totalEntries / entriesPerPage);
   const startIndex = (currentPage - 1) * entriesPerPage;
   const selectedData = filteredData.slice(startIndex, startIndex + entriesPerPage);
 
-  return (
-    <div className="max-w-6xl mx-auto p-4 bg-white shadow-xl rounded-xl mb-5 mt-5">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-4">
-        {/* Entries per page */}
-        <div>
-          <label className="text-sm text-gray-600">
-            Show
-            <select
-              className="border px-2 py-1 mx-2"
-              value={entriesPerPage}
-              onChange={(e) => {
-                setEntriesPerPage(Number(e.target.value));
-                setCurrentPage(1);
-              }}
-            >
-              {entriesPerPageOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-            entries
-          </label>
-        </div>
+  const handleEdit = (item) => {
+    setEditItem({ ...item });
+    setShowEditModal(true);
+  };
 
-        {/* Search Bar */}
+  const handleSaveEdit = () => {
+    const updatedData = dataPatroli.map((item) =>
+      item.nomor === editItem.nomor ? editItem : item
+    );
+    setDataPatroli(updatedData);
+    setShowEditModal(false);
+    alert("Surat tugas berhasil diedit");
+  };
+
+  const handleDelete = (nomor) => {
+    const confirmDelete = confirm("Yakin ingin menghapus surat tugas ini?");
+    if (confirmDelete) {
+      const updatedData = dataPatroli.filter((item) => item.nomor !== nomor);
+      setDataPatroli(updatedData);
+    }
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto p-4 bg-white shadow-xl rounded-xl my-5">
+      <div className="flex justify-between items-center mb-4">
+        <label className="text-sm text-gray-600">
+          Show
+          <select
+            className="border px-2 py-1 mx-2"
+            value={entriesPerPage}
+            onChange={(e) => {
+              setEntriesPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+          >
+            {entriesPerPageOptions.map((option) => (
+              <option key={option} value={option}>{option}</option>
+            ))}
+          </select>
+          entries
+        </label>
+
         <div className="relative">
           <input
             type="text"
-            placeholder="Search..."
+            placeholder="Search"
             className="border px-3 py-1 pl-8 rounded-xl"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -92,7 +104,6 @@ export default function PatroliTable2() {
         </div>
       </div>
 
-      {/* Tabel */}
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
@@ -112,15 +123,20 @@ export default function PatroliTable2() {
                 <td className="py-2">{formatDate(item.mulai)}</td>
                 <td className="py-2">{formatDate(item.selesai)}</td>
                 <td className="py-2">
-                  {/* Container untuk ikon aksi */}
                   <div className="flex gap-2">
                     <button className="bg-blue-600 text-white p-2 rounded-xl hover:bg-[#0099CC] hover:text-black">
                       <FiEye size={20} />
                     </button>
-                    <button className="bg-[#DF6D14] text-white p-2 rounded-xl hover:bg-[#FCF596] hover:text-black">
+                    <button
+                      className="bg-[#DF6D14] text-white p-2 rounded-xl hover:bg-[#FCF596] hover:text-black"
+                      onClick={() => handleEdit(item)}
+                    >
                       <FiEdit size={20} />
                     </button>
-                    <button className="bg-red-600 text-white p-2 rounded-xl hover:bg-[#FFA09B] hover:text-black">
+                    <button
+                      className="bg-red-600 text-white p-2 rounded-xl hover:bg-[#FFA09B] hover:text-black"
+                      onClick={() => handleDelete(item.nomor)}
+                    >
                       <FiTrash2 size={20} />
                     </button>
                   </div>
@@ -131,13 +147,10 @@ export default function PatroliTable2() {
         </table>
       </div>
 
-      {/* Footer */}
       <div className="flex justify-between items-center mt-4">
         <p className="text-sm text-gray-600">
           Showing {startIndex + 1} to {Math.min(startIndex + entriesPerPage, totalEntries)} of {totalEntries} entries
         </p>
-
-        {/* Pagination */}
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
@@ -166,6 +179,72 @@ export default function PatroliTable2() {
           </button>
         </div>
       </div>
+
+      {showEditModal && editItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-xl w-[90%] max-w-md">
+            <h2 className="text-lg font-semibold mb-4">Edit Surat Tugas</h2>
+
+            <div className="mb-3">
+              <label className="block text-sm font-medium">Nomor Surat</label>
+              <input
+                className="w-full border p-2 rounded"
+                value={editItem.nomor}
+                onChange={(e) => setEditItem({ ...editItem, nomor: e.target.value })}
+              />
+            </div>
+
+            <div className="mb-3">
+              <label className="block text-sm font-medium">Jenis Patroli</label>
+              <select
+                className="w-full border p-2 rounded"
+                value={editItem.jenis}
+                onChange={(e) => setEditItem({ ...editItem, jenis: e.target.value })}
+              >
+                <option value="Mandiri">Mandiri</option>
+                <option value="Rutin">Rutin</option>
+                <option value="Terpadu">Terpadu</option>
+                <option value="Pemadaman">Pemadaman</option>
+              </select>
+            </div>
+
+            <div className="mb-3">
+              <label className="block text-sm font-medium">Tanggal Mulai</label>
+              <input
+                className="w-full border p-2 rounded"
+                type="date"
+                value={editItem.mulai}
+                onChange={(e) => setEditItem({ ...editItem, mulai: e.target.value })}
+              />
+            </div>
+
+            <div className="mb-3">
+              <label className="block text-sm font-medium">Tanggal Selesai</label>
+              <input
+                className="w-full border p-2 rounded"
+                type="date"
+                value={editItem.selesai}
+                onChange={(e) => setEditItem({ ...editItem, selesai: e.target.value })}
+              />
+            </div>
+
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                Simpan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -4,7 +4,7 @@ import "./globals.css";
 
 // components
 // import Header from "@/components/header/Header";
-// import Footer from "@/components/footer/Footer";
+import Footer from "@/components/footer/Footer";
 // import Map from "@/components/map/Map";
 
 const roboto = Roboto({ subsets: ['latin'], 
@@ -30,8 +30,7 @@ export default function RootLayout({ children }) {
         {/* <Map /> */}
         {children}
         {/* <PatroliDateProvider></PatroliDateProvider> */}
-        {/* <Footer /> */}
-        
+        <Footer />
       </body>
     </html>
   );

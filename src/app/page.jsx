@@ -1,6 +1,6 @@
 "use client";
 
-import Footer from "@/components/footer/Footer";
+// import Footer from "@/components/footer/Footer";
 import Header from "@/components/header/Header";
 import { useState, useEffect } from "react";
 import PatrolStat from "@/components/card/PatrolStat";
@@ -142,7 +142,7 @@ export default function Home() {
       </div>
 
       {/* footer section */}
-      <Footer />
+      {/* <Footer /> */}
     </main>
   );
 }

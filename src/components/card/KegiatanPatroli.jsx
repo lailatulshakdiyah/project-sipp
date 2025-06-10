@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { FiSearch } from "react-icons/fi";
-import { FaMapMarkerAlt } from "react-icons/fa";
+import { useState } from "react";
+import { FiSearch, FiDownload } from "react-icons/fi";
 
 export default function KegiatanPatroli({ data, isLoading, error }) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -10,7 +9,7 @@ export default function KegiatanPatroli({ data, isLoading, error }) {
   const [entriesPerPage, setEntriesPerPage] = useState(10);
 
   const entriesPerPageOptions = [10, 25, 50, 100];
-  
+
   const filteredData = data.filter((item) =>
     item.kegiatan?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -18,13 +17,16 @@ export default function KegiatanPatroli({ data, isLoading, error }) {
   const totalEntries = filteredData.length;
   const totalPages = Math.ceil(totalEntries / entriesPerPage);
   const startIndex = (currentPage - 1) * entriesPerPage;
-  const selectedData = filteredData.slice(startIndex, startIndex + entriesPerPage);
+  const selectedData = filteredData.slice(
+    startIndex,
+    startIndex + entriesPerPage
+  );
 
-  const aksiColorMap = {
+  const badgeColors = {
     "Patroli Mandiri": "#006BFF",
-    "Patroli Rutin": "#F9C132",
+    "Patroli Rutin": "#FFC635",
     "Patroli Terpadu": "#52AF53",
-    "Pemadaman": "#FF0000",
+    "Pemadaman": "#F01313",
   };
 
   const getPagination = (current, total) => {
@@ -34,7 +36,11 @@ export default function KegiatanPatroli({ data, isLoading, error }) {
     let l;
 
     for (let i = 1; i <= total; i++) {
-      if (i === 1 || i === total || (i >= current - delta && i <= current + delta)) {
+      if (
+        i === 1 ||
+        i === total ||
+        (i >= current - delta && i <= current + delta)
+      ) {
         range.push(i);
       }
     }
@@ -59,7 +65,6 @@ export default function KegiatanPatroli({ data, isLoading, error }) {
       <div className="bg-white shadow-xl rounded-xl p-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-          {/* Entries Selection */}
           <div className="w-full md:w-auto">
             <label htmlFor="entries" className="text-sm text-gray-700">
               Show{" "}
@@ -80,7 +85,8 @@ export default function KegiatanPatroli({ data, isLoading, error }) {
               entries
             </label>
           </div>
-            {/* search bar */}
+
+          {/* Search bar */}
           <div className="w-full md:w-auto flex justify-start md:justify-end">
             <div className="relative w-full md:w-64">
               <input
@@ -102,33 +108,47 @@ export default function KegiatanPatroli({ data, isLoading, error }) {
         {/* Table */}
         {!isLoading && !error && (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left text-gray-700">
-              <thead className="border-b">
+            <table className="w-full table-fixed text-md text-left">
+              <thead className="border-b bg-gray-100">
                 <tr>
-                  <th className="py-2">Daerah Operasi</th>
-                  <th className="py-2">Kegiatan</th>
-                  <th className="py-2">Daerah Patroli</th>
-                  <th className="py-2">Ketua Regu</th>
-                  <th className="py-2">Aksi</th>
+                  <th className="py-2 px-5">Daerah Operasi</th>
+                  <th className="py-2 px-10">Kegiatan</th>
+                  <th className="py-2 px-5">Daerah Patroli</th>
+                  <th className="py-2 px-10">Ketua Regu</th>
+                  <th className="py-2 px-5 text-right pr-6">Aksi</th>
                 </tr>
               </thead>
               <tbody>
                 {selectedData.length > 0 ? (
                   selectedData.map((item, index) => (
                     <tr key={index} className="border-b">
-                      <td className="py-2">{item.nama_daops}</td>
-                      <td className="py-2">{item.kegiatan}</td>
-                      <td className="py-2">{item.daerah}</td>
-                      <td className="py-2">{item.ketua_regu}</td>
-                      <td className="py-2">
-                        <FaMapMarkerAlt size={30} color={aksiColorMap[item.aksi] || "#9CA3AF"} />
+                      <td className="py-2 px-5">{item.nama_daops}</td>
+                      <td className="py-2 px-10">
+                        <span
+                          className="inline-block px-2 py-1 rounded-xl text-white text-md font-medium"
+                          style={{
+                            backgroundColor:
+                              badgeColors[item.kegiatan] || "#9CA3AF",
+                          }}
+                        >
+                          {item.kegiatan}
+                        </span>
+                      </td>
+                      <td className="py-2 px-5 break-words">{item.daerah}</td>
+                      <td className="py-2 px-10 break-words">{item.ketua_regu}</td>
+                      <td className="py-2 px-5 text-right pr-6">
+                        <button 
+                          onClick={() => alert(`unduh laporan: ${item.nama_daops}`)}
+                          className="bg-green-600 hover:bg-[#A7D477] text-white hover:text-black p-2 rounded-xl transition-colors">
+                          <FiDownload size={20} />
+                        </button>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
                     <td colSpan="5" className="py-4 text-center text-gray-500">
-                      Tidak ada data
+                      Tidak ada data yang ditemukan.
                     </td>
                   </tr>
                 )}
@@ -141,14 +161,18 @@ export default function KegiatanPatroli({ data, isLoading, error }) {
         {!isLoading && !error && (
           <div className="flex justify-between items-center mt-4">
             <p className="text-sm text-accent">
-              Showing {startIndex + 1} to {Math.min(startIndex + entriesPerPage, totalEntries)} of {totalEntries} entries
+              Showing {startIndex + 1} to{" "}
+              {Math.min(startIndex + entriesPerPage, totalEntries)} of{" "}
+              {totalEntries} entries
             </p>
             <div className="flex items-center space-x-1">
               <button
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
                 className={`px-3 py-1 border rounded-xl ${
-                  currentPage === 1 ? "text-gray-400 cursor-not-allowed" : "hover:bg-gray-200"
+                  currentPage === 1
+                    ? "text-gray-400 cursor-not-allowed"
+                    : "hover:bg-gray-200"
                 }`}
               >
                 &lt; Previous
@@ -156,13 +180,17 @@ export default function KegiatanPatroli({ data, isLoading, error }) {
 
               {getPagination(currentPage, totalPages).map((page, index) =>
                 page === "..." ? (
-                  <span key={index} className="px-3 py-1 text-gray-500">...</span>
+                  <span key={index} className="px-3 py-1 text-gray-500">
+                    ...
+                  </span>
                 ) : (
                   <button
                     key={page}
                     onClick={() => setCurrentPage(page)}
                     className={`px-3 py-1 border rounded-xl ${
-                      currentPage === page ? "bg-blue-500 text-white" : "hover:bg-gray-200"
+                      currentPage === page
+                        ? "bg-blue-500 text-white"
+                        : "hover:bg-gray-200"
                     }`}
                   >
                     {page}
@@ -171,10 +199,14 @@ export default function KegiatanPatroli({ data, isLoading, error }) {
               )}
 
               <button
-                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
                 disabled={currentPage === totalPages}
                 className={`px-3 py-1 border rounded-xl ${
-                  currentPage === totalPages ? "text-gray-400 cursor-not-allowed" : "hover:bg-gray-200"
+                  currentPage === totalPages
+                    ? "text-gray-400 cursor-not-allowed"
+                    : "hover:bg-gray-200"
                 }`}
               >
                 Next &gt;

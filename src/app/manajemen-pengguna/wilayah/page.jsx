@@ -1,5 +1,5 @@
 import Wilayah from '@/components/card/Wilayah'
-import Footer from '@/components/footer/Footer'
+// import Footer from '@/components/footer/Footer'
 import Header from '@/components/header/Header'
 import React from 'react'
 
@@ -13,7 +13,7 @@ export default function page() {
       <div>
         <Wilayah/>
       </div>
-      <Footer/>
+      {/* <Footer/> */}
     </main>
   )
 }

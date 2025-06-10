@@ -4,7 +4,7 @@ import Header from "@/components/header/Header";
 import React from "react";
 import Image from "next/image";
 import UserBg from "@/assets/img/user-bg.jpg";
-import Footer from "@/components/footer/Footer";
+// import Footer from "@/components/footer/Footer";
 
 export default function page() {
   return (
@@ -72,7 +72,7 @@ export default function page() {
         </p>
       </div>
 
-      <Footer/>
+      {/* <Footer/> */}
     </main>
   );
 }

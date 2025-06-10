@@ -37,9 +37,9 @@ const createCustomIcon = (color) => {
 
 const aksiColorMap = {
   "Patroli Mandiri": "#006BFF",
-  "Patroli Rutin": "#F9C132",
+  "Patroli Rutin": "#FFC635",
   "Patroli Terpadu": "#52AF53",
-  "Pemadaman": "#FF0000",
+  "Pemadaman": "#F01313",
 }
 
 const getCustomMarkerIcon = (aksi) => {

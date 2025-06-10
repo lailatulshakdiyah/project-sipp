@@ -53,6 +53,8 @@ export function middleware(request) {
 
   // 3) Logika proteksi halaman biasa Anda…
   const token = request.cookies.get("authToken")?.value;
+  console.log("TOKEN DARI COOKIE:", request.cookies.get("authToken")?.value);
+  
   if (!token && pathname !== "/homepage") {
     return NextResponse.redirect(new URL("/homepage", request.url));
   }

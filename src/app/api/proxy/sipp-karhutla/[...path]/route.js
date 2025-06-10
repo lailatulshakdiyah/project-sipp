@@ -1,24 +1,40 @@
 // File: src/app/api/proxy/sipp-karhutla/[...path]/route.js
-// File: src/app/api/proxy/sipp-karhutla/[...path]/route.js
 import { NextResponse } from "next/server";
 
+// Fungsi bantu untuk menentukan URL backend berdasarkan prefix path
+function resolveBackendUrl(suffix) {
+  if (suffix.startsWith("api_v2/")) {
+    const subPath = suffix.replace(/^api_v2\//, "");
+    return `https://sipongi.menlhk.go.id/sipp-karhutla/api_v2/${subPath}`;
+  } else if (suffix.startsWith("simadu/")) {
+    const subPath = suffix.replace(/^simadu\//, "");
+    return `https://sipongi.menlhk.go.id/sipp-karhutla/api/simadu/${subPath}`;
+  } else {
+    // Fallback jika tidak cocok
+    return null;
+  }
+}
+
+// ---------------- POST
 export async function POST(request, { params }) {
-  // Gabungkan sisa path: [ 'api_v2', 'auth', 'login' ] → 'api_v2/auth/login'
   const suffix = params.path.join("/");
+  const backendUrl = resolveBackendUrl(suffix);
+  if (!backendUrl) {
+    return new NextResponse("Invalid API path", { status: 400 });
+  }
 
-  // Karena base URL baru: http://203.99.108.16/api-sipp-v2
-  // Maka kita ingin memanggil: http://203.99.108.16/api-sipp-v2/auth/login
-  // Path lengkap: /api-sipp-v2/{suffix tanpa "api_v2/"}
-  // Jika suffix selalu diawali "api_v2/", kita bisa buang bagian itu:
-  const pathWithoutApiV2 = suffix.replace(/^api_v2\//, ""); 
-  const backendUrl = `http://203.99.108.16/api-sipp-v2/${pathWithoutApiV2}`;
-
+  const token = request.cookies.get("authToken")?.value;
   const bodyRaw = await request.text();
   const contentType = request.headers.get("content-type") || "";
 
+  const headers = { "Content-Type": contentType };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const backendRes = await fetch(backendUrl, {
     method: "POST",
-    headers: { "Content-Type": contentType },
+    headers,
     body: bodyRaw,
   });
 
@@ -32,7 +48,6 @@ export async function POST(request, { params }) {
     },
   });
 
-  // Jika backend mengirim Set-Cookie (misal authToken=…), set ke browser
   if (setCookieHeader) {
     const match = setCookieHeader.match(/authToken=([^;]+);?/);
     if (match) {
@@ -44,19 +59,35 @@ export async function POST(request, { params }) {
     }
   }
 
+  try {
+    const parsed = JSON.parse(responseText);
+    if (parsed?.data?.token) {
+      response.cookies.set("authToken", parsed.data.token, {
+        path: "/",
+        httpOnly: true,
+        maxAge: 60 * 60,
+      });
+    }
+  } catch {}
+
   return response;
 }
 
+// ---------------- GET
 export async function GET(request, { params }) {
   const suffix = params.path.join("/");
-  const pathWithoutApiV2 = suffix.replace(/^api_v2\//, "");
-  const backendUrl = `http://203.99.108.16/api-sipp-v2/${pathWithoutApiV2}`;
+  const backendUrl = resolveBackendUrl(suffix);
+  if (!backendUrl) {
+    return new NextResponse("Invalid API path", { status: 400 });
+  }
 
   const token = request.cookies.get("authToken")?.value;
 
   const backendRes = await fetch(backendUrl, {
     method: "GET",
-    headers: { Authorization: `Bearer ${token}` },
+    headers: {
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
   });
 
   let data;
@@ -69,23 +100,8 @@ export async function GET(request, { params }) {
 
   return new NextResponse(JSON.stringify(data), {
     status: backendRes.status,
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+    },
   });
 }
-
-// src/app/api/proxy/sipp-karhutla/[...path]/route.js
-// import { NextResponse } from "next/server";
-
-// export async function GET(request, { params }) {
-//   return NextResponse.json({
-//     pesan: "GET terdeteksi",
-//     pathParams: params.path,
-//   });
-// }
-
-// export async function POST(request, { params }) {
-//   return NextResponse.json({
-//     pesan: "POST terdeteksi",
-//     pathParams: params.path,
-//   });
-// }

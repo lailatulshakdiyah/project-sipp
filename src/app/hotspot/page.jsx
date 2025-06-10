@@ -1,7 +1,7 @@
 "use client"
 
 import PatrolHotspot from '@/components/card/PatrolHot'
-import Footer from '@/components/footer/Footer'
+// import Footer from '@/components/footer/Footer'
 import Header from '@/components/header/Header'
 import MapHots from '@/components/map/MapHots'
 import React, { useEffect, useState } from 'react'
@@ -36,7 +36,7 @@ export default function page() {
       <div className="mb-12 -mt-80">
           <PatrolHotspot hotspots={hotspots} />
       </div>
-      <Footer />
+      {/* <Footer /> */}
     </main>
   )
 }

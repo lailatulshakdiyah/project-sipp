@@ -5,7 +5,7 @@ import Map from '@/components/map/Map'
 import Image from 'next/image'
 import favicon from '@/assets/img/sipp-favicon.png'
 import PatrolStat from '@/components/card/PatrolStat'
-import Footer from '@/components/footer/Footer'
+// import Footer from '@/components/footer/Footer'
 import HeaderLog from '@/components/header/HeaderLog'
 import { useState, useEffect } from 'react'
 
@@ -148,7 +148,7 @@ export default function homepage () {
 
       {/* footer */}
       <div className='mt-5'>
-        <Footer />
+        {/* <Footer /> */}
       </div>
     </div>
   )
