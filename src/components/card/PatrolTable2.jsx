@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { FiSearch, FiEye, FiTrash2, FiEdit } from "react-icons/fi";
+import CustomPagination from "../shared/CustomPagination";
 
 const formatDate = (dateString) => {
+  if (!dateString) return "-";
   const months = [
     "Januari", "Februari", "Maret", "April", "Mei", "Juni",
     "Juli", "Agustus", "September", "Oktober", "November", "Desember"
@@ -12,38 +14,21 @@ const formatDate = (dateString) => {
   return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
 };
 
-const dataPatroliDummy = [
-  { nomor: "ST001", jenis: "Rutin", mulai: "2025-01-12", selesai: "2025-01-22" },
-  { nomor: "ST002", jenis: "Terpadu", mulai: "2025-01-14", selesai: "2025-01-24" },
-  { nomor: "ST003", jenis: "Mandiri", mulai: "2025-01-16", selesai: "2025-01-26" },
-  { nomor: "ST004", jenis: "Pemadaman", mulai: "2025-01-18", selesai: "2025-01-28" },
-  { nomor: "ST005", jenis: "Mandiri", mulai: "2025-01-20", selesai: "2025-01-30" },
-  { nomor: "ST006", jenis: "Pemadaman", mulai: "2025-01-22", selesai: "2025-02-01" },
-  { nomor: "ST007", jenis: "Rutin", mulai: "2025-01-24", selesai: "2025-02-03" },
-  { nomor: "ST008", jenis: "Rutin", mulai: "2025-01-26", selesai: "2025-02-05" },
-  { nomor: "ST009", jenis: "Terpadu", mulai: "2025-01-28", selesai: "2025-02-08" },
-  { nomor: "ST010", jenis: "Mandiri", mulai: "2025-01-30", selesai: "2025-02-10" },
-  { nomor: "ST011", jenis: "Terpadu", mulai: "2025-02-01", selesai: "2025-02-11" },
-  { nomor: "ST012", jenis: "Pemadaman", mulai: "2025-02-03", selesai: "2025-02-13" },
-  { nomor: "ST013", jenis: "Mandiri", mulai: "2025-02-05", selesai: "2025-02-15" },
-  { nomor: "ST014", jenis: "Rutin", mulai: "2025-02-07", selesai: "2025-02-17" },
-  { nomor: "ST015", jenis: "Terpadu", mulai: "2025-02-09", selesai: "2025-02-19" },
-];
-
 const entriesPerPageOptions = [10, 25, 50, 100];
 
-export default function PatroliTable2() {
+export default function PatroliTable2({ data = [], isLoading, error }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
-  const [dataPatroli, setDataPatroli] = useState(dataPatroliDummy);
   const [editItem, setEditItem] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
 
-  const filteredData = dataPatroli.filter((item) =>
-    item.nomor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.jenis.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredData = useMemo(() => {
+    return data.filter((item) => 
+      item.nomor.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.jenis.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [data, searchTerm]);
 
   const totalEntries = filteredData.length;
   const totalPages = Math.ceil(totalEntries / entriesPerPage);
@@ -92,6 +77,7 @@ export default function PatroliTable2() {
           entries
         </label>
 
+        {/* Search bar */}
         <div className="relative">
           <input
             type="text"
@@ -104,81 +90,75 @@ export default function PatroliTable2() {
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="border-b">
-              <th className="py-2 text-left">Nomor Surat</th>
-              <th className="py-2 text-left">Jenis Patroli</th>
-              <th className="py-2 text-left">Tanggal Mulai</th>
-              <th className="py-2 text-left">Tanggal Selesai</th>
-              <th className="py-2 text-left">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {selectedData.map((item, index) => (
-              <tr key={index} className="border-b">
-                <td className="py-2">{item.nomor}</td>
-                <td className="py-2">{item.jenis}</td>
-                <td className="py-2">{formatDate(item.mulai)}</td>
-                <td className="py-2">{formatDate(item.selesai)}</td>
-                <td className="py-2">
-                  <div className="flex gap-2">
-                    <button className="bg-blue-600 text-white p-2 rounded-xl hover:bg-[#0099CC] hover:text-black">
-                      <FiEye size={20} />
-                    </button>
-                    <button
-                      className="bg-[#DF6D14] text-white p-2 rounded-xl hover:bg-[#FCF596] hover:text-black"
-                      onClick={() => handleEdit(item)}
-                    >
-                      <FiEdit size={20} />
-                    </button>
-                    <button
-                      className="bg-red-600 text-white p-2 rounded-xl hover:bg-[#FFA09B] hover:text-black"
-                      onClick={() => handleDelete(item.nomor)}
-                    >
-                      <FiTrash2 size={20} />
-                    </button>
-                  </div>
-                </td>
+      {/* Loading or Error */}
+      {isLoading && <p className="text-center py-10">Loading...</p>}
+      {error && <p className="text-center text-red-500 py-10">{error}</p>}
+
+      {!isLoading && !error && (
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="border-b">
+                <th className="py-2 px-4 text-left">Nomor Surat</th>
+                <th className="py-2 px-2 text-left">Jenis Patroli</th>
+                <th className="py-2 px-2 text-left">Tanggal Mulai</th>
+                <th className="py-2 px-2 text-left">Tanggal Selesai</th>
+                <th className="py-2 px-2 text-center pr-6">Aksi</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="flex justify-between items-center mt-4">
-        <p className="text-sm text-gray-600">
-          Showing {startIndex + 1} to {Math.min(startIndex + entriesPerPage, totalEntries)} of {totalEntries} entries
-        </p>
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className={`px-3 py-1 border rounded-xl ${currentPage === 1 ? "text-gray-400" : "hover:bg-gray-200"}`}
-          >
-            &lt; Previous
-          </button>
-
-          {[...Array(totalPages)].map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrentPage(i + 1)}
-              className={`px-3 py-1 border rounded-xl ${currentPage === i + 1 ? "bg-blue-500 text-white" : "hover:bg-gray-200"}`}
-            >
-              {i + 1}
-            </button>
-          ))}
-
-          <button
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
-            className={`px-3 py-1 border rounded-xl ${currentPage === totalPages ? "text-gray-400" : "hover:bg-gray-200"}`}
-          >
-            Next &gt;
-          </button>
+            </thead>
+            <tbody>
+              {selectedData.map((item, index) => (
+                <tr key={index} className="border-b hover:bg-gray-50">
+                  <td className="py-2 px-4">{item.nomor}</td>
+                  <td className="py-2 px-2">{item.jenis_surat}</td>
+                  <td className="py-2 px-2">{formatDate(item.tanggal_awal)}</td>
+                  <td className="py-2 px-2">{formatDate(item.tanggal_akhir)}</td>
+                  <td className="py-2 px-2">
+                    <div className="flex justify-center gap-2">
+                      <button className="bg-blue-600 text-white p-2 rounded-xl hover:bg-[#0099CC] hover:text-black">
+                        <FiEye size={20} />
+                      </button>
+                      <button
+                        className="bg-[#DF6D14] text-white p-2 rounded-xl hover:bg-[#FCF596] hover:text-black"
+                        onClick={() => handleEdit(item)}
+                      >
+                        <FiEdit size={20} />
+                      </button>
+                      <button
+                        className="bg-red-600 text-white p-2 rounded-xl hover:bg-[#FFA09B] hover:text-black"
+                        onClick={() => handleDelete(item.nomor)}
+                      >
+                        <FiTrash2 size={20} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-      </div>
+      )}
+      
+      {/* Pagination area */}
+      {isLoading ? (
+        <p className="text-center mt-4 text-gray-500">Loading data...</p>
+      ) : totalEntries === 0 ? (
+        <p className="text-center mt-4 text-gray-500">No data available.</p>
+      ) : (
+        <div className="flex justify-between items-center mt-4 flex-wrap gap-2">
+          <p className="text-sm text-accent">
+            Show {startIndex + 1} to {Math.min(startIndex + entriesPerPage, totalEntries)} of {totalEntries} entries
+          </p>
+
+          <CustomPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            delta={2}
+            className="justify-end w-fit text-accent"
+          />
+        </div>
+      )}
 
       {showEditModal && editItem && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

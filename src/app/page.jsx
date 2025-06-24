@@ -2,7 +2,7 @@
 
 // import Footer from "@/components/footer/Footer";
 import Header from "@/components/header/Header";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import PatrolStat from "@/components/card/PatrolStat";
 import KegiatanPatroli from "@/components/card/KegiatanPatroli";
 import Map from "@/components/map/Map";
@@ -14,6 +14,7 @@ export default function Home() {
     return today;
   });
 
+  const flyToRef = useRef();
   const [markerData, setMarkerData] = useState([]);
   const [groupedData, setGroupedData] = useState({
     mandiri: 0,
@@ -114,7 +115,7 @@ export default function Home() {
     <main>
       <Header />
       <div className="h-screen w-full relative z-0">
-        <Map selectedDate={selectedDate} markerData={markerData} />
+        <Map selectedDate={selectedDate} markerData={markerData} flyToRef={flyToRef}/>
       </div>
 
       {/* PatrolStat */}
@@ -134,6 +135,7 @@ export default function Home() {
       {/* table kegiatan patroli */}
       <div>
         <KegiatanPatroli
+          onFlyTo={flyToRef}
           selectedDate={selectedDate}
           data={markerData}
           isLoading={isLoading}

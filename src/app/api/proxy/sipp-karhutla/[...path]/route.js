@@ -1,4 +1,3 @@
-// File: src/app/api/proxy/sipp-karhutla/[...path]/route.js
 import { NextResponse } from "next/server";
 
 // Fungsi bantu untuk menentukan URL backend berdasarkan prefix path
@@ -13,6 +12,44 @@ function resolveBackendUrl(suffix) {
     // Fallback jika tidak cocok
     return null;
   }
+}
+
+// ---------------- GET
+export async function GET(request, { params }) {
+  const suffix = params.path.join("/");
+
+  // Ambil query string dari URL
+  const searchParams = request.nextUrl.searchParams.toString();
+  const fullPath = `${suffix}${searchParams ? `?${searchParams}` : ""}`;
+
+  const backendUrl = resolveBackendUrl(fullPath);
+  if (!backendUrl) {
+    return new NextResponse("Invalid API path", { status: 400 });
+  }
+
+  const token = request.cookies.get("authToken")?.value;
+
+  const backendRes = await fetch(backendUrl, {
+    method: "GET",
+    headers: {
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  });
+
+  let data;
+  try {
+    data = await backendRes.json();
+  } catch {
+    const text = await backendRes.text();
+    return new NextResponse("Error parsing JSON", { status: 500 });
+  }
+
+  return new NextResponse(JSON.stringify(data), {
+    status: backendRes.status,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 }
 
 // ---------------- POST
@@ -71,37 +108,4 @@ export async function POST(request, { params }) {
   } catch {}
 
   return response;
-}
-
-// ---------------- GET
-export async function GET(request, { params }) {
-  const suffix = params.path.join("/");
-  const backendUrl = resolveBackendUrl(suffix);
-  if (!backendUrl) {
-    return new NextResponse("Invalid API path", { status: 400 });
-  }
-
-  const token = request.cookies.get("authToken")?.value;
-
-  const backendRes = await fetch(backendUrl, {
-    method: "GET",
-    headers: {
-      ...(token && { Authorization: `Bearer ${token}` }),
-    },
-  });
-
-  let data;
-  try {
-    data = await backendRes.json();
-  } catch {
-    const text = await backendRes.text();
-    return new NextResponse("Error parsing JSON", { status: 500 });
-  }
-
-  return new NextResponse(JSON.stringify(data), {
-    status: backendRes.status,
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
 }

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { FiSearch, FiEdit, FiTrash2 } from "react-icons/fi";
 import { FaPlus } from "react-icons/fa";
 import { getCategoryData } from "@/lib/api/getCategoryData";
+import CustomPagination from "../shared/CustomPagination";
 
 // Konfigurasi header tabel untuk setiap kategori
 const headers = {
@@ -21,7 +22,7 @@ export default function Wilayah() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
-  const [selectedCategory, setSelectedCategory] = useState("Posko");
+  const [selectedCategory, setSelectedCategory] = useState("Wilayah");
   const [dataOptions, setDataOptions] = useState({});
   const [loading, setLoading] = useState(false);
 
@@ -56,27 +57,6 @@ export default function Wilayah() {
   const totalPages = Math.ceil(totalEntries / entriesPerPage);
   const startIndex = (currentPage - 1) * entriesPerPage;
   const selectedData = filteredData.slice(startIndex, startIndex + entriesPerPage);
-
-  // Fungsi pagination builder
-  const getPagination = (current, total) => {
-    const delta = 1;
-    const pages = [];
-
-    if (total <= 7) {
-      for (let i = 1; i <= total; i++) pages.push(i);
-      return pages;
-    }
-
-    pages.push(1);
-    if (current > 3) pages.push("...");
-    for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
-      pages.push(i);
-    }
-    if (current < total - 2) pages.push("...");
-    pages.push(total);
-
-    return pages;
-  };
 
   return (
     <div className="max-w-5xl mx-auto p-4 bg-white shadow-xl rounded-xl mt-5 mb-5">
@@ -181,41 +161,14 @@ export default function Wilayah() {
           <p className="text-sm text-accent">
             Show {startIndex + 1} to {Math.min(startIndex + entriesPerPage, totalEntries)} of {totalEntries} entries
           </p>
-          <div className="flex items-center flex-wrap gap-1">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className={`px-3 py-1 border rounded-xl ${
-                currentPage === 1 ? "text-gray-400 cursor-not-allowed" : "hover:bg-gray-200"
-              }`}
-            >
-              &lt; Previous
-            </button>
-            {getPagination(currentPage, totalPages).map((page, index) =>
-              page === "..." ? (
-                <span key={index} className="px-3 py-1 text-gray-500">...</span>
-              ) : (
-                <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`px-3 py-1 border rounded-xl ${
-                    currentPage === page ? "bg-blue-600 text-white font-semibold" : "hover:bg-gray-100"
-                  }`}
-                >
-                  {page}
-                </button>
-              )
-            )}
-            <button
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className={`px-3 py-1 border rounded-xl ${
-                currentPage === totalPages ? "text-gray-400 cursor-not-allowed" : "hover:bg-gray-200"
-              }`}
-            >
-              Next &gt;
-            </button>
-          </div>
+
+          <CustomPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            delta={2}
+            className="justify-end w-fit text-accent"
+          />
         </div>
       )}
     </div>

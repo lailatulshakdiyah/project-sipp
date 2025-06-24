@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { FiSearch, FiEye, FiDownload } from "react-icons/fi";
+import CustomPagination from "../shared/CustomPagination";
 
 const formatDate = (dateString) => {
   if (!dateString) return "-";
@@ -34,30 +35,6 @@ export default function PatroliTable1({ data = [], isLoading, error }) {
   const totalPages = Math.ceil(totalEntries / entriesPerPage);
   const startIndex = (currentPage - 1) * entriesPerPage;
   const selectedData = filteredData.slice(startIndex, startIndex + entriesPerPage);
-
-  const getPagination = (current, total) => {
-    const delta = 1;
-    const pagesToShow = [];
-
-    if (total <= 7) {
-      for (let i = 1; i <= total; i++) pagesToShow.push(i);
-      return pagesToShow;
-    }
-
-    pagesToShow.push(1);
-    if (current > 3) pagesToShow.push("...");
-
-    const startPage = Math.max(2, current - delta);
-    const endPage = Math.min(total - 1, current + delta);
-    for (let i = startPage; i <= endPage; i++) {
-      pagesToShow.push(i);
-    }
-
-    if (current < total - 2) pagesToShow.push("...");
-
-    pagesToShow.push(total);
-    return pagesToShow;
-  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -99,7 +76,7 @@ export default function PatroliTable1({ data = [], isLoading, error }) {
           </div>
         </div>
 
-        {/* Loading / Error */}
+        {/* Loading or Error */}
         {isLoading && <p className="text-center py-10">Loading...</p>}
         {error && <p className="text-center text-red-500 py-10">{error}</p>}
 
@@ -154,51 +131,24 @@ export default function PatroliTable1({ data = [], isLoading, error }) {
           </div>
         )}
 
-        {/* Footer Pagination */}
-        {!isLoading && !error && totalEntries > 0 && (
+        {/* Pagination area */}
+        {isLoading ? (
+          <p className="text-center mt-4 text-gray-500">Loading data...</p>
+        ) : totalEntries === 0 ? (
+          <p className="text-center mt-4 text-gray-500">No data available.</p>
+        ) : (
           <div className="flex justify-between items-center mt-4 flex-wrap gap-2">
             <p className="text-sm text-accent">
               Show {startIndex + 1} to {Math.min(startIndex + entriesPerPage, totalEntries)} of {totalEntries} entries
             </p>
-            <div className="flex items-center flex-wrap gap-1">
-              <button
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className={`px-3 py-1 border rounded-xl ${
-                  currentPage === 1 ? "text-gray-400 cursor-not-allowed" : "hover:bg-gray-200"
-                }`}
-              >
-                &lt; Previous
-              </button>
 
-              {getPagination(currentPage, totalPages).map((page, index) =>
-                page === "..." ? (
-                  <span key={index} className="px-3 py-1 text-gray-500">...</span>
-                ) : (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`px-3 py-1 border rounded-xl ${
-                      currentPage === page
-                        ? "bg-blue-600 text-white font-semibold"
-                        : "hover:bg-gray-100"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                )
-              )}
-
-              <button
-                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-                className={`px-3 py-1 border rounded-xl ${
-                  currentPage === totalPages ? "text-gray-400 cursor-not-allowed" : "hover:bg-gray-200"
-                }`}
-              >
-                Next &gt;
-              </button>
-            </div>
+            <CustomPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              delta={2}
+              className="justify-end w-fit text-accent"
+            />
           </div>
         )}
       </div>

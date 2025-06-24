@@ -79,7 +79,7 @@ const navItems = [
   },
 ];
 
-const Navbar = () => {
+export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { logout } = useAuthStore();
@@ -92,41 +92,52 @@ const Navbar = () => {
 
   const handleLogout = () => {
     logout();
-    router.replace("/homepage");
+    router.replace("/homepage")
   };
 
   return (
     <>
-      {/* Navbar */}
       <nav className="flex gap-8">
         {navItems.map((item, index) => {
-          const itemClasses = pathname === item.path ? "text-[#09122C] font-md" : "text-accent";
+          const isActive = pathname === item.path;
+          const itemClasses = isActive
+            ? "text-[#09122C] font-md"
+            : "text-accent";
+
           return (
             <div key={index} className="relative group">
-              <div
-                className={`flex items-center gap-2 cursor-pointer hover:text-white ${itemClasses}`}
-                onClick={() => item.children && toggleDropdown(index)}
-              >
-                <button>{item.name}</button>
-                {item.children && (
+              {item.children ? (
+                <button
+                  onClick={() => toggleDropdown(index)}
+                  className={`flex items-center gap-2 cursor-pointer hover:text-white ${itemClasses}`}
+                >
+                  {item.name}
                   <span className="ml-1">
                     {openDropdown === index ? (
-                      <FiChevronUp className="w-4 h-4 transition-transform" />
+                      <FiChevronUp className="w-4 h-4" />
                     ) : (
-                      <FiChevronDown className="w-4 h-4 transition-transform" />
+                      <FiChevronDown className="w-4 h-4" />
                     )}
                   </span>
-                )}
-              </div>
+                </button>
+              ) : (
+                <Link
+                  href={item.path}
+                  className={`flex items-center gap-2 hover:text-white ${itemClasses}`}
+                >
+                  {item.name}
+                </Link>
+              )}
 
-              {/* Submenu */}
               {item.children && openDropdown === index && (
                 <div className="absolute top-full left-0 bg-white shadow-xl mt-2 rounded-lg w-auto min-w-max max-h-60 overflow-visible opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
                   {item.children.map((subItem, subIndex) => {
-                    const subItemClasses = pathname === subItem.path ? "bg-[#00CCFF] text-white font-md" : "text-accent";
+                    const subActive = pathname === subItem.path;
+                    const subItemClasses = subActive
+                      ? "bg-[#00CCFF] text-white font-md"
+                      : "text-accent";
 
                     return subItem.action === "logout" ? (
-                      // Trigger modal saat klik Logout
                       <button
                         key={subIndex}
                         onClick={() => setIsLogoutModalOpen(true)}
@@ -136,9 +147,9 @@ const Navbar = () => {
                       </button>
                     ) : (
                       <Link
-                        href={subItem.path}
                         key={subIndex}
-                        className={`block px-4 py-2 hover:text-white hover:bg-[#0099CC] text-accent rounded-md transition-all ${subItemClasses}`}
+                        href={subItem.path}
+                        className={`block px-4 py-2 hover:text-white hover:bg-[#0099CC] rounded-md transition-all ${subItemClasses}`}
                       >
                         {subItem.name}
                       </Link>
@@ -151,7 +162,6 @@ const Navbar = () => {
         })}
       </nav>
 
-      {/* Modal Logout */}
       {isLogoutModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
           <div className="bg-white shadow-lg rounded-xl p-6 max-w-md text-center">
@@ -177,5 +187,3 @@ const Navbar = () => {
     </>
   );
 };
-
-export default Navbar;

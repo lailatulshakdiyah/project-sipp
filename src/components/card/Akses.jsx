@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { FiSearch, FiEdit, FiTrash2 } from "react-icons/fi";
+import CustomPagination from "../shared/CustomPagination";
 
 const entriesPerPageOptions = [10, 25, 50, 100];
 
@@ -9,6 +10,7 @@ export default function Akses({ categorizedData = {}, isLoading, error }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [loading, setLoading] = useState(false);
   // const [selectedCategory, setSelectedCategory] = useState("Daops");
 
   const headers = ["Nama", "No Registrasi/NIP", "Email", "Organisasi", "Hak Akses", "Aksi"];
@@ -28,32 +30,7 @@ export default function Akses({ categorizedData = {}, isLoading, error }) {
   const startIndex = (currentPage - 1) * entriesPerPage;
   const selectedData = filteredData.slice(startIndex, startIndex + entriesPerPage);
 
-  const getPagination = (current, total) => {
-    const delta = 2;
-    const range = [];
-    const rangeWithDots = [];
-    let l;
 
-    for (let i = 1; i <= total; i++) {
-      if (i === 1 || i === total || (i >= current - delta && i <= current + delta)) {
-        range.push(i);
-      }
-    }
-
-    for (let i of range) {
-      if (l) {
-        if (i - l === 2) {
-          rangeWithDots.push(l + 1);
-        } else if (i - l > 2) {
-          rangeWithDots.push("...");
-        }
-      }
-      rangeWithDots.push(i);
-      l = i;
-    }
-
-    return rangeWithDots;
-  };
 
   return (
     <div className="max-w-5xl mx-auto p-4 bg-white shadow-xl rounded-xl mt-5 mb-5">
@@ -146,48 +123,23 @@ export default function Akses({ categorizedData = {}, isLoading, error }) {
       </div>
 
       {/* Pagination */}
-      {!isLoading && !error && (
-        <div className="flex justify-between items-center mt-4">
+      {loading ? (
+        <p className="text-center mt-4 text-gray-500">Loading data...</p>
+      ) : totalEntries === 0 ? (
+        <p className="text-center mt-4 text-gray-500">No data available.</p>
+      ) : (
+        <div className="flex justify-between items-center mt-4 flex-wrap gap-2">
           <p className="text-sm text-accent">
-            Showing {startIndex + 1} to {Math.min(startIndex + entriesPerPage, totalEntries)} of {totalEntries} entries
+            Show {startIndex + 1} to {Math.min(startIndex + entriesPerPage, totalEntries)} of {totalEntries} entries
           </p>
-          <div className="flex items-center space-x-1">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className={`px-3 py-1 border rounded-xl ${
-                currentPage === 1 ? "text-gray-400 cursor-not-allowed" : "hover:bg-gray-200"
-              }`}
-            >
-              &lt; Previous
-            </button>
-
-            {getPagination(currentPage, totalPages).map((page, index) =>
-              page === "..." ? (
-                <span key={index} className="px-3 py-1 text-gray-500">...</span>
-              ) : (
-                <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`px-3 py-1 border rounded-xl ${
-                    currentPage === page ? "bg-blue-500 text-white" : "hover:bg-gray-200"
-                  }`}
-                >
-                  {page}
-                </button>
-              )
-            )}
-
-            <button
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className={`px-3 py-1 border rounded-xl ${
-                currentPage === totalPages ? "text-gray-400 cursor-not-allowed" : "hover:bg-gray-200"
-              }`}
-            >
-              Next &gt;
-            </button>
-          </div>
+      
+          <CustomPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            delta={2}
+            className="justify-end w-fit text-accent"
+          />
         </div>
       )}
     </div>

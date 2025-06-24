@@ -2,13 +2,11 @@ import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import favicon from '@/assets/img/sipp-favicon.png'
-
-// components
 import Navbar from './Navbar'
 import MobileNav from './MobileNav'
 
 
-const Header = () => {
+export default function Header() {
   return (
     <header className='fixed top-0 left-0 w-full xl:py-4 text-accent bg-[#AFE2F8] shadow-md z-[50]'>
       <div className='container mx-auto flex justify-between items-center'>
@@ -35,5 +33,3 @@ const Header = () => {
     </header>
   )
 }
-
-export default Header 

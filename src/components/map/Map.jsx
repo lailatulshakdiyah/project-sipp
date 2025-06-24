@@ -5,21 +5,29 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { renderToStaticMarkup } from "react-dom/server";
 import { FaMapMarkerAlt } from "react-icons/fa";
+import { useEffect, useRef } from "react";
+import { MapContainer, TileLayer, Marker, Popup, LayersControl } from "react-leaflet";
 
-
-const MapContainer = dynamic(() => import("react-leaflet").then((mod) => mod.MapContainer), { ssr: false });
-const TileLayer = dynamic(() => import("react-leaflet").then((mod) => mod.TileLayer), { ssr: false });
-const Marker = dynamic(() => import("react-leaflet").then((mod) => mod.Marker), { ssr: false });
-const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), { ssr: false });
-const LayersControl = dynamic(
-  () => import("react-leaflet").then((mod) => mod.LayersControl), { ssr: false }
-);
+// const MapContainer = dynamic(() => import("react-leaflet").then((mod) => mod.MapContainer), { ssr: false });
+// const TileLayer = dynamic(() => import("react-leaflet").then((mod) => mod.TileLayer), { ssr: false });
+// // const Marker = dynamic(() => import("react-leaflet").then((mod) => mod.Marker), { ssr: false });
+// const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), { ssr: false });
+// const LayersControl = dynamic(
+//   () => import("react-leaflet").then((mod) => mod.LayersControl), { ssr: false }
+// );
 const BaseLayer = dynamic(
   () => import("react-leaflet").then((mod) => mod.LayersControl.BaseLayer), { ssr: false }
 );
 
-const DEFAULT_HEIGHT = "65vh";
 const DEFAULT_CENTER = [-2.5489, 118.0149]; // Pusat Indonesia
+const DEFAULT_HEIGHT = "65vh";
+
+const aksiColorMap = {
+  "Patroli Mandiri": "#006BFF",
+  "Patroli Rutin": "#F9C132",
+  "Patroli Terpadu": "#52AF53",
+  "Pemadaman": "#FF0000",
+}
 
 const createCustomIcon = (color) => {
   const iconMarkup = renderToStaticMarkup(
@@ -35,23 +43,36 @@ const createCustomIcon = (color) => {
   });
 }
 
-const aksiColorMap = {
-  "Patroli Mandiri": "#006BFF",
-  "Patroli Rutin": "#FFC635",
-  "Patroli Terpadu": "#52AF53",
-  "Pemadaman": "#F01313",
-}
-
 const getCustomMarkerIcon = (aksi) => {
   const color = aksiColorMap[aksi];
   return color ? createCustomIcon(color) : null;
 };
 
-export default function Map({ markerData = [] }) {
+export default function Map({ markerData = [], flyToRef }) {
+  const mapRef = useRef();
+  const markerRefs = useRef({});
+
+  useEffect(() => {
+    if (flyToRef) {
+      flyToRef.current = (lat, lng, kodeLaporan) => {
+        if (mapRef.current) {
+          mapRef.current.flyTo([lat, lng], 10);
+        }
+
+        const marker = markerRefs.current[kodeLaporan];
+        if (marker) {
+          setTimeout(() => {
+            marker.openPopup();
+          }, 600);
+        }
+      };
+    }
+  }, [flyToRef]);
+
   return (
     <>
       {/* <p>Total marker: {markerData.length}</p> */}
-      <MapContainer center={DEFAULT_CENTER} zoom={5} style={{ height: DEFAULT_HEIGHT, width: "100%" }}>
+      <MapContainer ref={mapRef} center={DEFAULT_CENTER} zoom={5} style={{ height: DEFAULT_HEIGHT, width: "100%" }}>
         <LayersControl position="topright">
           <BaseLayer checked name="Street Map">
             <TileLayer
@@ -106,6 +127,11 @@ export default function Map({ markerData = [] }) {
               key={index}
               position={[item.lat, item.lng]}
               icon={getCustomMarkerIcon(item.aksi)}
+              ref={(el) => {
+                if (el) {
+                  markerRefs.current[item.kode_laporan] = el;
+                }
+              }}
             >
               <Popup>
                 <div className="text-sm space-y-2">

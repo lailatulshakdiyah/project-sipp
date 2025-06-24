@@ -43,7 +43,7 @@ const navItems = [
         path: "/manajemen-pengguna/wilayah",
       },
       {
-        nama: "Hak Akses",
+        name: "Hak Akses",
         path: "/manajemen-pengguna/hak-akses",
       },
     ],
@@ -125,7 +125,7 @@ const MobileNav = () => {
                       key={subIndex}
                       className={`block px-4 py-2 hover:text-white hover:bg-[#00CCFF] text-accent rounded-md ${
                         pathname === subItem.path
-                          ? "text-white font-md"
+                          ? "text-accent font-md"
                           : "text-accent"
                       }`}
                     >

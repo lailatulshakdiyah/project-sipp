@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { FiSearch, FiDownload } from "react-icons/fi";
+import CustomPagination from "../shared/CustomPagination";
+import { FaMapMarkerAlt } from 'react-icons/fa';
 
-export default function KegiatanPatroli({ data, isLoading, error }) {
+export default function KegiatanPatroli({ data, isLoading, error, onFlyTo }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
@@ -22,43 +24,13 @@ export default function KegiatanPatroli({ data, isLoading, error }) {
     startIndex + entriesPerPage
   );
 
-  const badgeColors = {
+  const aksiColorMap = {
     "Patroli Mandiri": "#006BFF",
-    "Patroli Rutin": "#FFC635",
+    "Patroli Rutin": "#F9C132",
     "Patroli Terpadu": "#52AF53",
-    "Pemadaman": "#F01313",
+    "Pemadaman": "#FF0000",
   };
 
-  const getPagination = (current, total) => {
-    const delta = 2;
-    const range = [];
-    const rangeWithDots = [];
-    let l;
-
-    for (let i = 1; i <= total; i++) {
-      if (
-        i === 1 ||
-        i === total ||
-        (i >= current - delta && i <= current + delta)
-      ) {
-        range.push(i);
-      }
-    }
-
-    for (let i of range) {
-      if (l) {
-        if (i - l === 2) {
-          rangeWithDots.push(l + 1);
-        } else if (i - l > 2) {
-          rangeWithDots.push("...");
-        }
-      }
-      rangeWithDots.push(i);
-      l = i;
-    }
-
-    return rangeWithDots;
-  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -108,40 +80,41 @@ export default function KegiatanPatroli({ data, isLoading, error }) {
         {/* Table */}
         {!isLoading && !error && (
           <div className="overflow-x-auto">
-            <table className="w-full table-fixed text-md text-left">
+            <table className="w-full border-collapse">
               <thead className="border-b bg-gray-100">
                 <tr>
-                  <th className="py-2 px-5">Daerah Operasi</th>
-                  <th className="py-2 px-10">Kegiatan</th>
-                  <th className="py-2 px-5">Daerah Patroli</th>
-                  <th className="py-2 px-10">Ketua Regu</th>
-                  <th className="py-2 px-5 text-right pr-6">Aksi</th>
+                  <th className="py-2 px-4 text-left">Daerah Operasi</th>
+                  <th className="py-2 px-4 text-left">Kegiatan</th>
+                  <th className="py-2 px-4 text-left">Daerah Patroli</th>
+                  <th className="py-2 px-4 text-left">Ketua Regu</th>
+                  <th className="py-2 text-center pr-6">Aksi</th>
                 </tr>
               </thead>
               <tbody>
                 {selectedData.length > 0 ? (
                   selectedData.map((item, index) => (
-                    <tr key={index} className="border-b">
-                      <td className="py-2 px-5">{item.nama_daops}</td>
-                      <td className="py-2 px-10">
-                        <span
-                          className="inline-block px-2 py-1 rounded-xl text-white text-md font-medium"
-                          style={{
-                            backgroundColor:
-                              badgeColors[item.kegiatan] || "#9CA3AF",
-                          }}
-                        >
-                          {item.kegiatan}
-                        </span>
-                      </td>
-                      <td className="py-2 px-5 break-words">{item.daerah}</td>
-                      <td className="py-2 px-10 break-words">{item.ketua_regu}</td>
-                      <td className="py-2 px-5 text-right pr-6">
-                        <button 
-                          onClick={() => alert(`unduh laporan: ${item.nama_daops}`)}
-                          className="bg-green-600 hover:bg-[#A7D477] text-white hover:text-black p-2 rounded-xl transition-colors">
-                          <FiDownload size={20} />
-                        </button>
+                    <tr key={index} className="border-b hover:bg-gray-50">
+                      <td className="py-2 px-4">{item.nama_daops}</td>
+                      <td className="py-2 px-4">{item.kegiatan}</td>
+                      <td className="py-2 px-4">{item.daerah}</td>
+                      <td className="py-2 px-4">{item.ketua_regu}</td>
+                      <td className="py-2 px-4 text-center pr-6">
+                        <div className="flex justify-center gap-3">
+                          <button 
+                            onClick={() => {
+                              if (item.lat && item.lng && item.kode_laporan) {
+                                onFlyTo.current(item.lat, item.lng, item.kode_laporan);
+                              }
+                            }}
+                          >
+                            <FaMapMarkerAlt size={30} color={aksiColorMap[item.aksi] || "#9CA3AF"} />
+                          </button>
+                          <button 
+                            onClick={() => alert(`unduh laporan: ${item.nama_daops}`)}
+                            className="bg-green-600 hover:bg-[#A7D477] text-white hover:text-black p-2 rounded-xl transition-colors">
+                            <FiDownload size={20} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -158,60 +131,23 @@ export default function KegiatanPatroli({ data, isLoading, error }) {
         )}
 
         {/* Footer Pagination */}
-        {!isLoading && !error && (
-          <div className="flex justify-between items-center mt-4">
+        {isLoading ? (
+          <p className="text-center mt-4 text-gray-500">Loading data...</p>
+        ) : totalEntries === 0 ? (
+          <p className="text-center mt-4 text-gray-500">No data available.</p>
+        ) : (
+          <div className="flex justify-between items-center mt-4 flex-wrap gap-2">
             <p className="text-sm text-accent">
-              Showing {startIndex + 1} to{" "}
-              {Math.min(startIndex + entriesPerPage, totalEntries)} of{" "}
-              {totalEntries} entries
+              Show {startIndex + 1} to {Math.min(startIndex + entriesPerPage, totalEntries)} of {totalEntries} entries
             </p>
-            <div className="flex items-center space-x-1">
-              <button
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className={`px-3 py-1 border rounded-xl ${
-                  currentPage === 1
-                    ? "text-gray-400 cursor-not-allowed"
-                    : "hover:bg-gray-200"
-                }`}
-              >
-                &lt; Previous
-              </button>
 
-              {getPagination(currentPage, totalPages).map((page, index) =>
-                page === "..." ? (
-                  <span key={index} className="px-3 py-1 text-gray-500">
-                    ...
-                  </span>
-                ) : (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`px-3 py-1 border rounded-xl ${
-                      currentPage === page
-                        ? "bg-blue-500 text-white"
-                        : "hover:bg-gray-200"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                )
-              )}
-
-              <button
-                onClick={() =>
-                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                }
-                disabled={currentPage === totalPages}
-                className={`px-3 py-1 border rounded-xl ${
-                  currentPage === totalPages
-                    ? "text-gray-400 cursor-not-allowed"
-                    : "hover:bg-gray-200"
-                }`}
-              >
-                Next &gt;
-              </button>
-            </div>
+            <CustomPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              delta={2}
+              className="justify-end w-fit text-accent"
+            />
           </div>
         )}
       </div>
