@@ -72,8 +72,6 @@ export default function homepage () {
           lng: laporan?.longitude ? parseFloat(laporan.longitude) : null,
           nama: laporan?.desa_kelurahan,
           kode_laporan: item?.id_laporan_header,
-            // ? `${laporan.desa_kelurahan}, ${laporan.kecamatan}, ${laporan.kabupaten}`
-            // : "-",
         };
       });
     
@@ -128,9 +126,9 @@ export default function homepage () {
         <div className='flex-1'>
           <h2 className='text-3xl font-semibold text-accent mb-2'>SIPP Karhutla</h2>
           <p className='text-black text-xl text-justify'>
-            Sistem Informasi Patroli Pencegahan Kebakaran Hutan dan Lahan merupakan sebuah sistem informasi pengelolaan data patroli  
-            pencegahan karhutla yang terdiri dari patroli mandiri, patroli rutin, patroli terpadu, dan pemadaman untuk mendukung 
-            pencegahan karhutla yang efektif dan efisien.
+            Sistem Informasi Patroli Pencegahan Kebakaran Hutan dan Lahan (SIPP Karhutla) merupakan sebuah sistem informasi pengelolaan data patroli  
+            pencegahan Karhutla yang terdiri dari Patroli Mandiri, Patroli Rutin, Patroli Terpadu, dan Pemadaman untuk mendukung 
+            pencegahan Karhutla yang efektif dan efisien.
           </p>
         </div>
 

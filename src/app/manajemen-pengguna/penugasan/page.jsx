@@ -4,7 +4,6 @@ import PatroliTable2 from '@/components/card/PatrolTable2'
 import Header from '@/components/header/Header'
 import React, { useEffect, useState } from 'react'
 
-
 export default function Page() {
   const [suratTugas, setSuratTugas] = useState([]);
   const [loading, setLoading] = useState(true);

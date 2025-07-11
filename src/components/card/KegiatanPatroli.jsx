@@ -25,7 +25,7 @@ export default function KegiatanPatroli({ data, isLoading, error, onFlyTo }) {
   );
 
   const aksiColorMap = {
-    "Patroli Mandiri": "#006BFF",
+    "Patroli Mandiri": "#1476FF",
     "Patroli Rutin": "#F9C132",
     "Patroli Terpadu": "#52AF53",
     "Pemadaman": "#FF0000",
@@ -79,7 +79,7 @@ export default function KegiatanPatroli({ data, isLoading, error, onFlyTo }) {
 
         {/* Table */}
         {!isLoading && !error && (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto mb-4">
             <table className="w-full border-collapse">
               <thead className="border-b bg-gray-100">
                 <tr>
@@ -109,10 +109,14 @@ export default function KegiatanPatroli({ data, isLoading, error, onFlyTo }) {
                           >
                             <FaMapMarkerAlt size={30} color={aksiColorMap[item.aksi] || "#9CA3AF"} />
                           </button>
-                          <button 
-                            onClick={() => alert(`unduh laporan: ${item.nama_daops}`)}
-                            className="bg-green-600 hover:bg-[#A7D477] text-white hover:text-black p-2 rounded-xl transition-colors">
-                            <FiDownload size={20} />
+                          <button
+                            onClick={() => {
+                              const pdfUrl = `https://sipongi.menlhk.go.id/sipp-karhutla/api/karhutla/download/${item.kode_laporan}`
+                              window.open(pdfUrl, '_blank')
+                            }}
+                            className="bg-indigo-500 hover:bg-grey-200 text-white hover:text-black p-2 rounded-xl transition-colors"
+                          >
+                            <FiDownload size={18} />
                           </button>
                         </div>
                       </td>

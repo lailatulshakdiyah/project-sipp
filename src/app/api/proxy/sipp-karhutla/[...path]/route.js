@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 
-// Fungsi bantu untuk menentukan URL backend berdasarkan prefix path
 function resolveBackendUrl(suffix) {
   if (suffix.startsWith("api_v2/")) {
     const subPath = suffix.replace(/^api_v2\//, "");
@@ -8,17 +7,18 @@ function resolveBackendUrl(suffix) {
   } else if (suffix.startsWith("simadu/")) {
     const subPath = suffix.replace(/^simadu\//, "");
     return `https://sipongi.menlhk.go.id/sipp-karhutla/api/simadu/${subPath}`;
+  // } else  if (suffix.startsWith("api/")) {
+  //   const subPath = suffix.replace(/^api\//, "");
+  //   return `https://sipongi.menlhk.go.id/sipp-karhutla/api/${subPath}`;
   } else {
-    // Fallback jika tidak cocok
     return null;
   }
 }
 
-// ---------------- GET
+// ---------------- GET //
 export async function GET(request, { params }) {
   const suffix = params.path.join("/");
 
-  // Ambil query string dari URL
   const searchParams = request.nextUrl.searchParams.toString();
   const fullPath = `${suffix}${searchParams ? `?${searchParams}` : ""}`;
 
@@ -52,7 +52,7 @@ export async function GET(request, { params }) {
   });
 }
 
-// ---------------- POST
+// ---------------- POST //
 export async function POST(request, { params }) {
   const suffix = params.path.join("/");
   const backendUrl = resolveBackendUrl(suffix);
@@ -106,6 +106,34 @@ export async function POST(request, { params }) {
       });
     }
   } catch {}
-
   return response;
+}
+
+// ---------------- DELETE //
+export async function DELETE(request, { params }) {
+  const suffix = params.path.join("/");
+  const backendUrl = resolveBackendUrl(suffix);
+  if (!backendUrl) {
+    return new NextResponse("Invalid API path", { status: 400 });
+  }
+
+  const token = request.cookies.get("authToken")?.value;
+
+  const headers = {
+    ...(token && { Authorization: `Bearer ${token}` }),
+  };
+
+  const backendRes = await fetch(backendUrl, {
+    method: "DELETE",
+    headers,
+  });
+
+  const responseText = await backendRes.text();
+
+  return new NextResponse(responseText, {
+    status: backendRes.status,
+    headers: {
+      "Content-Type": backendRes.headers.get("content-type") || "application/json",
+    },
+  });
 }

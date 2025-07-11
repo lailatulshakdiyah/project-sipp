@@ -1,6 +1,5 @@
 "use client";
 
-// import Footer from "@/components/footer/Footer";
 import Header from "@/components/header/Header";
 import { useState, useEffect, useRef } from "react";
 import PatrolStat from "@/components/card/PatrolStat";
@@ -70,8 +69,6 @@ export default function Home() {
           lng: laporan?.longitude ? parseFloat(laporan.longitude) : null,
           nama: laporan?.desa_kelurahan,
           kode_laporan: item?.id_laporan_header,
-            // ? `${laporan.desa_kelurahan}, ${laporan.kecamatan}, ${laporan.kabupaten}`
-            // : "-",
         };
       });
 
@@ -114,25 +111,28 @@ export default function Home() {
   return (
     <main>
       <Header />
+
       <div className="h-screen w-full relative z-0">
-        <Map selectedDate={selectedDate} markerData={markerData} flyToRef={flyToRef}/>
+        <Map selectedDate={selectedDate} markerData={markerData} flyToRef={flyToRef} />
       </div>
 
-      {/* PatrolStat */}
       <div className="-mt-72 mb-10">
         <PatrolStat selectedDate={selectedDate} groupedData={groupedData} />
       </div>
 
-      <h1 className="text-4xl font-bold text-accent text-center">
-        Kegiatan Patroli
-      </h1>
-
-      {/* input date */}
-      <div>
-        <DateInput onDateChange={setSelectedDate} />
+      <div className="w-full py-6 sm:px-6 lg:px-8 mt-12 mb-4">
+        <div className="flex flex-col items-center gap-2">
+          <h1 className="text-5xl font-bold text-accent text-center">
+            Kegiatan Patroli
+          </h1>
+          <div className="sticky w-full mx-auto">
+            <div className="rounded-lg p-4 sm:p-6 lg:p-8 bg-white flex justify-start ml-6 pl-8">
+              <DateInput onDateChange={setSelectedDate} />
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* table kegiatan patroli */}
       <div>
         <KegiatanPatroli
           onFlyTo={flyToRef}
@@ -142,9 +142,6 @@ export default function Home() {
           error={error}
         />
       </div>
-
-      {/* footer section */}
-      {/* <Footer /> */}
     </main>
   );
 }

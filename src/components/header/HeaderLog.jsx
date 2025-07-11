@@ -35,7 +35,7 @@ export default function HeaderLog() {
       setAuth({
         token: response.token,
         user: response.user,
-        detail: response.user, // atau response.detail jika kamu ubah
+        detail: response.user,
         isLoggedIn: true,
       });
 
@@ -46,7 +46,7 @@ export default function HeaderLog() {
       setIsSubmitting(false);
       router.push("/");
     } else {
-      setError(response.error || "Login gagal, token kosong");
+      setError(response.error || "Login Gagal, Pengguna Tidak Terdaftar");
       setIsSubmitting(false);
     }
   };

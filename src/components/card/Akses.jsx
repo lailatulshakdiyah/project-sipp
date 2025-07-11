@@ -6,12 +6,11 @@ import CustomPagination from "../shared/CustomPagination";
 
 const entriesPerPageOptions = [10, 25, 50, 100];
 
-export default function Akses({ categorizedData = {}, isLoading, error }) {
+export default function Akses({ categorizedData = {} }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [loading, setLoading] = useState(false);
-  // const [selectedCategory, setSelectedCategory] = useState("Daops");
 
   const headers = ["Nama", "No Registrasi/NIP", "Email", "Organisasi", "Hak Akses", "Aksi"];
   const categories = Object.keys(categorizedData);
@@ -29,8 +28,6 @@ export default function Akses({ categorizedData = {}, isLoading, error }) {
   const totalPages = Math.ceil(totalEntries / entriesPerPage);
   const startIndex = (currentPage - 1) * entriesPerPage;
   const selectedData = filteredData.slice(startIndex, startIndex + entriesPerPage);
-
-
 
   return (
     <div className="max-w-5xl mx-auto p-4 bg-white shadow-xl rounded-xl mt-5 mb-5">

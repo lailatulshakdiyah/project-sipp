@@ -98,7 +98,7 @@ export default function PatroliTable2({ data = [], isLoading, error }) {
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
-              <tr className="border-b">
+              <tr className="border-b bg-gray-100">
                 <th className="py-2 px-4 text-left">Nomor Surat</th>
                 <th className="py-2 px-2 text-left">Jenis Patroli</th>
                 <th className="py-2 px-2 text-left">Tanggal Mulai</th>

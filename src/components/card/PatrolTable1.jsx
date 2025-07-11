@@ -102,16 +102,18 @@ export default function PatroliTable1({ data = [], isLoading, error }) {
                       <td className="py-2 px-2">{formatDate(item.tanggal_awal)}</td>
                       <td className="py-2 px-2">{formatDate(item.tanggal_akhir)}</td>
                       <td className="py-2 px-2">
-                        <div className="flex justify-center gap-2">
-                          <button
+                        <div className="flex items-center">
+                          {/* <button
                             onClick={() => alert(`Lihat surat: ${item.nomor}`)}
                             className="bg-blue-600 text-white hover:text-black p-2 rounded-xl hover:bg-[#0099CC]"
                           >
                             <FiEye size={18} />
-                          </button>
+                          </button> */}
                           <button
-                            onClick={() => alert(`Unduh surat: ${item.nomor}`)}
-                            className="bg-green-600 text-white hover:text-black p-2 rounded-xl hover:bg-[#A7D477]"
+                            onClick={() => {
+                              window.location.href = `https://sipongi.menlhk.go.id/sipp-karhutla/api/karhutla/downloadPeriode?nomor_sk=${item.nomor}`;
+                            }}
+                            className="bg-indigo-500 text-white hover:text-black p-2 rounded-xl hover:bg-grey-200"
                           >
                             <FiDownload size={18} />
                           </button>

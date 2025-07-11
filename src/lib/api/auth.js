@@ -1,4 +1,3 @@
-// File: src/lib/api/auth.js
 export async function login({ username, password }) {
   try {
     const formBody = new URLSearchParams();
@@ -14,7 +13,6 @@ export async function login({ username, password }) {
     const json = await res.json();
     console.log("DATA LOGIN:", json);
 
-    // token dan user ada di dalam json.data
     const token = json.data?.token;
     const user = json.data?.user;
 
