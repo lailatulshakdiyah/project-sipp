@@ -114,7 +114,7 @@ export default function KegiatanPatroli({ data, isLoading, error, onFlyTo }) {
                               const pdfUrl = `https://sipongi.menlhk.go.id/sipp-karhutla/api/karhutla/download/${item.kode_laporan}`
                               window.open(pdfUrl, '_blank')
                             }}
-                            className="bg-indigo-500 hover:bg-grey-200 text-white hover:text-black p-2 rounded-xl transition-colors"
+                            className="bg-indigo-500 hover:bg-grey-200 text-white hover:text-black p-2 rounded transition-colors"
                           >
                             <FiDownload size={18} />
                           </button>

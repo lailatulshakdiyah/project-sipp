@@ -67,4 +67,25 @@ export function middleware(request) {
 
 export const config = {
   matcher: ["/((?!_next|favicon.ico|assets).*)"],
-};
+}; 
+
+
+// import { NextResponse } from "next/server";
+
+// export function middleware(req) {
+//   const token = req.cookies.get("token"); // kalau token disimpan di cookie
+
+//   if (req.nextUrl.pathname === "/homepage") {
+//     if (token) {
+//       return NextResponse.redirect(new URL("/", req.url));
+//     } else {
+//       return NextResponse.redirect(new URL("/homepage", req.url));
+//     }
+//   }
+
+//   return NextResponse.next();
+// }
+
+// export const config = {
+//   matcher: ["/"], // hanya berlaku di /
+// };

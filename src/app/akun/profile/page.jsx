@@ -1,5 +1,4 @@
 import Profile from '@/components/card/Profile'
-import Footer from '@/components/footer/Footer'
 import Header from '@/components/header/Header'
 import UserBg from '@/assets/img/user-bg.jpg'
 import Image from 'next/image'
@@ -31,8 +30,6 @@ export default function Page() {
             <Profile />
           </div>
         </div>
-
-        <Footer />
       </main>
     );
 }

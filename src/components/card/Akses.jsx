@@ -12,7 +12,7 @@ export default function Akses({ categorizedData = {} }) {
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [loading, setLoading] = useState(false);
 
-  const headers = ["Nama", "No Registrasi/NIP", "Email", "Organisasi", "Hak Akses", "Aksi"];
+  const headers = ["Nama", "No Registrasi/NIP", "Email", "Organisasi", "Hak Akses"];
   const categories = Object.keys(categorizedData);
   const defaultCategory = categories[0] || "";
   const [selectedCategory, setSelectedCategory] = useState(defaultCategory);
@@ -40,7 +40,7 @@ export default function Akses({ categorizedData = {} }) {
               setSelectedCategory(category);
               setCurrentPage(1);
             }} 
-            className={`px-4 py-2 mx-2 border rounded-xl ${selectedCategory === category ? "bg-blue-500 text-white" : "hover:bg-gray-200"}`}
+            className={`px-4 py-2 mx-2 border rounded ${selectedCategory === category ? "bg-blue-500 text-white" : "hover:bg-gray-200"}`}
           >
             {category}
           </button>
@@ -81,9 +81,9 @@ export default function Akses({ categorizedData = {} }) {
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
-            <tr className="border-b">
+            <tr className="border-b bg-gray-100">
               {headers.map((header) => (
-                <th key={header} className="py-2 text-left">{header}</th>
+                <th key={header} className="py-2 px-4 text-left">{header}</th>
               ))}
             </tr>
           </thead>
@@ -96,13 +96,13 @@ export default function Akses({ categorizedData = {} }) {
               </tr>
             ) : (
               selectedData.map((item, index) => (
-                <tr key={item.nip || index} className="border-b">
-                  <td className="py-2">{item.nama}</td>
-                  <td className="py-2">{item.nip}</td>
-                  <td className="py-2">{item.email}</td>
-                  <td className="py-2">{item.organisasi}</td>
-                  <td className="py-2">{item.hakAkses}</td>
-                  <td className="py-2">
+                <tr key={item.nip || index} className="border-b hover:bg-gray-50">
+                  <td className="py-2 px-4">{item.nama}</td>
+                  <td className="py-2 px-4">{item.nip}</td>
+                  <td className="py-2 px-4">{item.email}</td>
+                  <td className="py-2 px-4">{item.organisasi}</td>
+                  <td className="py-2 px-4">{item.hakAkses}</td>
+                  {/* <td className="py-2">
                     <div className="flex gap-2 items-center">
                       <button className="bg-[#DF6D14] text-white p-2 rounded-xl hover:bg-[#FCF596] hover:text-black">
                         <FiEdit size={20} />
@@ -111,7 +111,7 @@ export default function Akses({ categorizedData = {} }) {
                         <FiTrash2 size={20} />
                       </button>
                     </div>
-                  </td>
+                  </td> */}
                 </tr>
               ))
             )}

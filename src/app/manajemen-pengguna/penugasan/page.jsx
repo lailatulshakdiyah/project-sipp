@@ -31,13 +31,11 @@ export default function Page() {
 
       <div>
         {loading ? (
-          <p className='text-accent my-10'>Loading data...</p>
+          <p className='text-accent my-10 text-center'>Loading data...</p>
         ) : (
           <PatroliTable2 data={suratTugas} />
         )}
       </div>
-
-      {/* <Footer/> */}
     </main>
   )
 }

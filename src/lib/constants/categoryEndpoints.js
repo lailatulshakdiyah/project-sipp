@@ -3,8 +3,8 @@ const categoryEndpoints = {
   Korwil: "korwil/list",
   Daops: "daops/list",
   Posko: "posko/list",
-  Wilayah: ({ tipe = "pulau" } = {}) =>
-    `wilayah/list3?tipe=${tipe}`, // biarkan getAllPaginatedData yang mengatur page & perPage
+  Wilayah: ({ page = 1, perPage = 9051, tipe = "pulau" } = {}) =>
+  `wilayah/list3?page=${page}&perPage=${perPage}&tipe=${tipe}`,
 };
 
 export default categoryEndpoints;

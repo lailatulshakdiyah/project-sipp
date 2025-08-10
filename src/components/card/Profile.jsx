@@ -1,11 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import { useAuthStore } from "@/lib/store/authStore";
 
 export default function Profile() {
+  const userDetail = useAuthStore((state) => state.detail);
+  const token = useAuthStore((state) => state.token);
+  // const user = useAuthStore((state) => state.user);
+
   const [profile, setProfile] = useState({
-    accessLevel: "Admin",
+    accessLevel: "",
     registrationNumber: "",
     name: "",
     email: "",
@@ -22,10 +27,25 @@ export default function Profile() {
   const [activeTab, setActiveTab] = useState("profile");
   const [showPopup, setShowPopup] = useState(false);
 
+  useEffect(() => {
+    if (userDetail) {
+      setProfile({
+        accessLevel: userDetail?.roles?.[0]?.nama || "",
+        registrationNumber: userDetail?.no_registrasi || "",
+        name: userDetail?.nama || "",
+        email: userDetail?.email || "",
+        phone: userDetail?.no_telepon || "",
+        photo: userDetail?.foto
+          ? `https://api.sipp-karhutla.com/${userDetail.foto}`
+          : null,
+      });
+    }
+  }, [userDetail]);
+
   const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setProfile({ ...profile, photo: URL.createObjectURL(file) });
+      setProfile({ ...profile, photo: file });
     }
   };
 
@@ -37,12 +57,51 @@ export default function Profile() {
     setPasswords({ ...passwords, [e.target.name]: e.target.value });
   };
 
-  const handleSubmitProfile = (e) => {
+  const handleSubmitProfile = async (e) => {
     e.preventDefault();
-    setShowPopup(true);
-    setTimeout(() => {
-      setShowPopup(false);
-    }, 2000);
+
+    try {
+      const formData = new FormData();
+      formData.append("username", userDetail.username || "");
+      formData.append("password", userDetail.passwords || "");
+      formData.append("accessLevel", profile.accessLevel);
+      formData.append("registrationNumber", profile.registrationNumber);
+      formData.append("name", profile.name);
+      formData.append("email", profile.email);
+      formData.append("phone", profile.phone);
+      formData.append("id", userDetail.id || "");
+      formData.append("aktif", userDetail.aktif ? "true" : "false");
+      formData.append("instansi", userDetail.instansi || "");
+
+      if (profile.photo instanceof File) {
+        formData.append("photo", profile.photo);
+      }
+
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
+      }
+
+      const res = await fetch("/api/proxy/sipp-karhutla/api_v2/user/save", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const data = await res.json();
+      console.log("Update profile:", data);
+
+      if (res.ok) {
+        setShowPopup(true);
+        setTimeout(() => setShowPopup(false), 2000);
+      } else {
+        alert(`Gagal update profile: ${data.message || "Unknown error"}`);
+      }
+    } catch (error) {
+      console.error("Error update profile:", error);
+      alert("Tidak dapat terhubung ke server");
+    }
   };
 
   return (
@@ -71,14 +130,18 @@ export default function Profile() {
         </button>
       </div>
 
-      {/* Data Pengguna */}
+      {/* Form Data Pengguna */}
       {activeTab === "profile" && (
         <form onSubmit={handleSubmitProfile} className="flex gap-6">
           {/* Foto Profil */}
           <div className="w-2/5 flex flex-col items-center">
             {profile.photo ? (
               <Image
-                src={profile.photo}
+                src={
+                  profile.photo instanceof File
+                    ? URL.createObjectURL(profile.photo)
+                    : profile.photo
+                }
                 alt="Profile"
                 width={128}
                 height={128}
@@ -97,11 +160,20 @@ export default function Profile() {
             />
           </div>
 
-          {/* Form Data Pengguna */}
+          {/* Form Input */}
           <div className="w-3/5 space-y-4">
             {[
-              { label: "Hak Akses *", name: "accessLevel", type: "select", options: ["Super Admin", "Admin", "Guest"] },
-              { label: "Nomor Registrasi/NIP *", name: "registrationNumber", type: "text" },
+              {
+                label: "Hak Akses *",
+                name: "accessLevel",
+                type: "select",
+                options: ["Super Admin", "Guest"],
+              },
+              {
+                label: "Nomor Registrasi/NIP *",
+                name: "registrationNumber",
+                type: "text",
+              },
               { label: "Nama *", name: "name", type: "text" },
               { label: "Email *", name: "email", type: "email" },
               { label: "Nomor Telepon *", name: "phone", type: "text" },
@@ -135,9 +207,7 @@ export default function Profile() {
                       className="w-full px-3 pt-6 pb-2 bg-transparent focus:outline-none"
                       required
                     />
-                    <label
-                      className={`absolute top-2 left-3 text-sm text-gray-500 transition-all duration-200`}
-                    >
+                    <label className="absolute top-2 left-3 text-sm text-gray-500">
                       {field.label}
                     </label>
                   </div>
@@ -154,7 +224,7 @@ export default function Profile() {
         </form>
       )}
 
-      {/* Ubah Kata Sandi */}
+      {/* Form Ubah Kata Sandi */}
       {activeTab === "password" && (
         <form className="space-y-4">
           {[
@@ -162,7 +232,10 @@ export default function Profile() {
             { label: "Kata Sandi Baru *", name: "newPassword" },
             { label: "Konfirmasi Kata Sandi *", name: "confirmPassword" },
           ].map((field) => (
-            <div key={field.name} className="relative border border-gray-300 rounded-xl focus-within:border-blue-500">
+            <div
+              key={field.name}
+              className="relative border border-gray-300 rounded-xl focus-within:border-blue-500"
+            >
               <input
                 type="password"
                 name={field.name}
@@ -171,9 +244,7 @@ export default function Profile() {
                 onChange={handlePasswordChange}
                 required
               />
-              <label
-                className={`absolute top-2 left-3 text-sm text-gray-500 transition-all duration-200`}
-              >
+              <label className="absolute top-2 left-3 text-sm text-gray-500">
                 {field.label}
               </label>
             </div>
@@ -187,11 +258,13 @@ export default function Profile() {
         </form>
       )}
 
-      {/* Notifikasi Popup */}
+      {/* Notifikasi */}
       {showPopup && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-30">
           <div className="bg-white p-6 rounded-xl shadow-xl">
-            <h5 className="text-lg font-bold text-green-600">Perubahan Berhasil Disimpan!</h5>
+            <h5 className="text-lg font-bold text-green-600">
+              Perubahan Berhasil Disimpan!
+            </h5>
           </div>
         </div>
       )}

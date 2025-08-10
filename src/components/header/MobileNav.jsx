@@ -17,12 +17,12 @@ const navItems = [
     path: "/pelaporan",
     children: [
       {
-        name: "Patroli Harian",
-        path: "/pelaporan/patroli-harian",
-      },
-      {
         name: "Laporan Patroli",
         path: "/pelaporan/laporan-patroli"
+      },
+      {
+        name: "Patroli Harian",
+        path: "/pelaporan/patroli-harian",
       },
     ],
   },
@@ -30,6 +30,10 @@ const navItems = [
     name: "Manajemen Pengguna",
     path: "/manajemen-pengguna",
     children: [
+      {
+        name: "Hak Akses",
+        path: "/manajemen-pengguna/hak-akses",
+      },
       {
         name: "Penugasan",
         path: "/manajemen-pengguna/penugasan",
@@ -41,10 +45,6 @@ const navItems = [
       {
         name: "Wilayah",
         path: "/manajemen-pengguna/wilayah",
-      },
-      {
-        name: "Hak Akses",
-        path: "/manajemen-pengguna/hak-akses",
       },
     ],
   },

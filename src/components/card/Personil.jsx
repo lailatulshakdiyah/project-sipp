@@ -104,12 +104,12 @@ export default function Personil({ initialData = [], isLoading }) {
             />
             <FiSearch className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" />
           </div>
-          <button
+          {/* <button
             className="bg-blue-500 text-white p-2 rounded-xl hover:bg-blue-700"
             onClick={() => openModal(false)}
           >
             <FaPlus />
-          </button>
+          </button> */}
         </div>
       </div>
 
@@ -118,21 +118,21 @@ export default function Personil({ initialData = [], isLoading }) {
         <table className="w-full border-collapse">
           <thead>
             <tr className="border-b bg-gray-100">
-              <th className="py-2 text-left">Nama</th>
+              <th className="py-2 px-4 text-left">Nama</th>
               <th className="py-2 text-left">NIP</th>
               <th className="py-2 text-left">Email</th>
               <th className="py-2 text-left">No HP</th>
-              <th className="py-2 text-center">Aksi</th>
+              {/* <th className="py-2 text-center">Aksi</th> */}
             </tr>
           </thead>
           <tbody>
             {selectedData.map((item, index) => (
               <tr key={item.id || index} className="border-b hover:bg-gray-50">
-                <td className="py-2">{item.nama}</td>
+                <td className="py-2 px-4">{item.nama}</td>
                 <td className="py-2">{item.nip}</td>
                 <td className="py-2">{item.email}</td>
                 <td className="py-2">{item.noHp}</td>
-                <td className="py-2 text-center">
+                {/* <td className="py-2 text-center">
                   <div className="flex gap-2 justify-center">
                     <button className="bg-blue-600 text-white p-2 rounded-xl hover:bg-[#0099CC] hover:text-black">
                       <FiEye size={20} />
@@ -150,7 +150,7 @@ export default function Personil({ initialData = [], isLoading }) {
                       <FiTrash2 size={20} />
                     </button>
                   </div>
-                </td>
+                </td> */}
               </tr>
             ))}
           </tbody>

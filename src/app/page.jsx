@@ -22,8 +22,20 @@ export default function Home() {
     pemadaman: 0,
   });
 
+  const [isOnline, setIsOnline] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const updateOnlineStatus = () => setIsOnline(navigator.onLine);
+    updateOnlineStatus();
+    window.addEventListener("online", updateOnlineStatus);
+    window.addEventListener("offline", updateOnlineStatus);
+    return () => {
+      window.removeEventListener("online", updateOnlineStatus);
+      window.removeEventListener("offline", updateOnlineStatus);
+    };
+  }, []);
 
   const fetchData = async (tanggal) => {
     if (!tanggal) return;
@@ -34,43 +46,53 @@ export default function Home() {
       const response = await fetch(
         `https://sipongi.menlhk.go.id/sipp-karhutla/api/karhutla/list?tanggal_patroli=${tanggal}`
       );
+
+      if (response.status === 503) {
+        setError("Tidak ada koneksi internet");
+        setMarkerData([]);
+        setGroupedData({ mandiri: 0, rutin: 0, terpadu: 0, pemadaman: 0 });
+        return;
+      }
+
       if (!response.ok)
         throw new Error(`HTTP error! status: ${response.status}`);
 
       const result = await response.json();
 
       const parsedData = result.data
-      .flat()
-      .filter((item) => item.laporanDarat && item.laporanDarat.length > 0) 
-      .map((item) => {
-        const daerahPatroli =
-          typeof item.id_daerah_patroli === "object"
-            ? item.id_daerah_patroli
-            : item.regu_patroli?.daerah ?? {};
+        .flat()
+        .filter((item) => item.laporanDarat && item.laporanDarat.length > 0)
+        .map((item) => {
+          const daerahPatroli =
+            typeof item.id_daerah_patroli === "object"
+              ? item.id_daerah_patroli
+              : item.regu_patroli?.daerah ?? {};
 
-        const reguPatroli = item.regu_patroli ?? {};
-        const laporan = item.laporanDarat?.[0];
+          const reguPatroli = item.regu_patroli ?? {};
+          const laporan = item.laporanDarat?.[0];
 
-        return {
-          nama_daops: daerahPatroli?.nama_daops || "-",
-          kegiatan: item.kategori_patroli || "-",
-          daerah: laporan?.desa_kelurahan || "-",
-          ketua_regu: reguPatroli?.ketua?.nama || "-",
-          jenis: item.kategori_patroli || "-",
-          aksi: (() => {
-            const kategori = (item.kategori_patroli ?? "").trim().toLowerCase();
-            if (kategori === "patroli mandiri") return "Patroli Mandiri";
-            if (kategori === "patroli rutin") return "Patroli Rutin";
-            if (kategori === "patroli terpadu") return "Patroli Terpadu";
-            if (kategori === "pemadaman") return "Pemadaman";
-            return "-";
-          })(),
-          lat: laporan?.latitude ? parseFloat(laporan.latitude) : null,
-          lng: laporan?.longitude ? parseFloat(laporan.longitude) : null,
-          nama: laporan?.desa_kelurahan,
-          kode_laporan: item?.id_laporan_header,
-        };
-      });
+          return {
+            nama_daops: daerahPatroli?.nama_daops || "-",
+            kegiatan: item.kategori_patroli || "-",
+            daerah: laporan?.desa_kelurahan || "-",
+            ketua_regu: reguPatroli?.ketua?.nama || "-",
+            jenis: item.kategori_patroli || "-",
+            aksi: (() => {
+              const kategori = (item.kategori_patroli ?? "")
+                .trim()
+                .toLowerCase();
+              if (kategori === "patroli mandiri") return "Patroli Mandiri";
+              if (kategori === "patroli rutin") return "Patroli Rutin";
+              if (kategori === "patroli terpadu") return "Patroli Terpadu";
+              if (kategori === "pemadaman") return "Pemadaman";
+              return "-";
+            })(),
+            lat: laporan?.latitude ? parseFloat(laporan.latitude) : null,
+            lng: laporan?.longitude ? parseFloat(laporan.longitude) : null,
+            nama: laporan?.desa_kelurahan,
+            kode_laporan: item?.id_laporan_header,
+          };
+        });
 
       setMarkerData(parsedData);
 
@@ -85,8 +107,8 @@ export default function Home() {
         "Patroli Mandiri": "mandiri",
         "Patroli Rutin": "rutin",
         "Patroli Terpadu": "terpadu",
-        "Pemadaman": "pemadaman",
-      }
+        Pemadaman: "pemadaman",
+      };
 
       parsedData.forEach((item) => {
         const aksiKey = aksiMap[item.aksi];
@@ -105,15 +127,33 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchData(selectedDate);
-  }, [selectedDate]);
+    if (isOnline) {
+      fetchData(selectedDate);
+    } else {
+      setMarkerData([]);
+      setGroupedData({ mandiri: 0, rutin: 0, terpadu: 0, pemadaman: 0 });
+    }
+  }, [selectedDate, isOnline]);
+
+  if (!isOnline) {
+    return (
+      <main className="flex flex-col items-center justify-center min-h-screen text-red-600">
+        <h1 className="text-2xl font-bold">⚠ Tidak Ada Koneksi Internet</h1>
+        <p>Silahkan periksa jaringan Anda untuk melanjutkan.</p>
+      </main>
+    );
+  }
 
   return (
     <main>
       <Header />
 
       <div className="h-screen w-full relative z-0">
-        <Map selectedDate={selectedDate} markerData={markerData} flyToRef={flyToRef} />
+        <Map
+          selectedDate={selectedDate}
+          markerData={markerData}
+          flyToRef={flyToRef}
+        />
       </div>
 
       <div className="-mt-72 mb-10">

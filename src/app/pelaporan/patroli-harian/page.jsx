@@ -27,7 +27,7 @@ export default function Page() {
   return (
     <main>
       <Header />
-      <h1 className='text-4xl font-semibold text-accent text-center mt-10'>Daftar Surat Tugas</h1>
+      <h1 className='text-4xl font-semibold text-accent text-center mt-10'>Laporan Surat Tugas</h1>
       
       <div>
         {loading ? (

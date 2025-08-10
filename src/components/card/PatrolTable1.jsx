@@ -1,16 +1,16 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { FiSearch, FiEye, FiDownload } from "react-icons/fi";
 import CustomPagination from "../shared/CustomPagination";
 
 const formatDate = (dateString) => {
   if (!dateString) return "-";
+  const date = new Date(dateString);
   const months = [
     "Januari", "Februari", "Maret", "April", "Mei", "Juni",
     "Juli", "Agustus", "September", "Oktober", "November", "Desember"
   ];
-  const date = new Date(dateString);
   return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
 };
 
@@ -20,6 +20,13 @@ export default function PatroliTable1({ data = [], isLoading, error }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [selectedNomor, setSelectedNomor] = useState(null);
+
+  // Modal-related states
+  const [detailData, setDetailData] = useState([]);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+  const [errorDetail, setErrorDetail] = useState(null);
+  const modalRef = useRef();
 
   useEffect(() => {
     setCurrentPage(1);
@@ -27,7 +34,10 @@ export default function PatroliTable1({ data = [], isLoading, error }) {
 
   const filteredData = useMemo(() => {
     return data.filter((item) =>
-      item.nomor?.toLowerCase().includes(searchTerm.toLowerCase())
+      item.nomor?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.jenis_surat?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      item.tanggal_awal?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.tanggal_akhir?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [data, searchTerm]);
 
@@ -36,52 +46,76 @@ export default function PatroliTable1({ data = [], isLoading, error }) {
   const startIndex = (currentPage - 1) * entriesPerPage;
   const selectedData = filteredData.slice(startIndex, startIndex + entriesPerPage);
 
+  useEffect(() => {
+    if (!selectedNomor) return;
+    const fetchDetail = async () => {
+      setLoadingDetail(true);
+      setErrorDetail(null);
+
+      try {
+        // const encoded = encodeURIComponent(selectedNomor);
+        const res = await fetch(`/api/listlaporan?nomor_sk=${selectedNomor}`);
+        const result = await res.json();
+        if (!res.ok) throw new Error(result?.error || "Gagal mengambil data");
+        setDetailData(Array.isArray(result.data) ? result.data : []);
+      } catch (err) {
+        setErrorDetail(err.message);
+        setDetailData([]);
+      } finally {
+        setLoadingDetail(false);
+      }
+    };
+
+    fetchDetail();
+  }, [selectedNomor]);
+
+  const handleOutsideClick = (e) => {
+    if (modalRef.current && !modalRef.current.contains(e.target)) {
+      setSelectedNomor(null);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div className="bg-white shadow-xl rounded-xl p-6">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-          <div className="w-full md:w-auto">
-            <label htmlFor="entries" className="text-sm text-gray-700">
-              Show{" "}
-              <select
-                className="border border-gray-300 rounded-md px-2 py-1 text-sm"
-                value={entriesPerPage}
-                onChange={(e) => {
-                  setEntriesPerPage(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-              >
-                {entriesPerPageOptions.map((option) => (
-                  <option key={option} value={option}>{option}</option>
-                ))}
-              </select>{" "}
-              entries
-            </label>
-          </div>
 
-          {/* Search bar */}
-          <div className="w-full md:w-auto flex justify-start md:justify-end">
-            <div className="relative w-full md:w-64">
-              <input
-                type="text"
-                placeholder="Search"
-                aria-label="Cari nomor surat"
-                className="border px-3 py-1 pl-8 rounded-xl w-full"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <FiSearch className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            </div>
+        {/* Header filter dan search */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+          <label className="text-sm text-gray-700">
+            Show{" "}
+            <select
+              className="border rounded px-2 py-1 text-sm"
+              value={entriesPerPage}
+              onChange={(e) => {
+                setEntriesPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+            >
+              {entriesPerPageOptions.map((option) => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>{" "}
+            entries
+          </label>
+
+          <div className="relative w-full md:w-64">
+            <input
+              type="text"
+              placeholder="Search"
+              className="border px-3 py-1 pl-8 rounded-xl w-full"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <FiSearch className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" />
           </div>
         </div>
 
-        {/* Loading or Error */}
-        {isLoading && <p className="text-center py-10">Loading...</p>}
-        {error && <p className="text-center text-red-500 py-10">{error}</p>}
-
-        {/* Tabel */}
-        {!isLoading && !error && (
+        {/* Tabel Surat Tugas */}
+        {isLoading ? (
+          <p className="text-center py-10">Loading...</p>
+        ) : error ? (
+          <p className="text-center text-red-500 py-10">{error}</p>
+        ) : (
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
@@ -90,7 +124,7 @@ export default function PatroliTable1({ data = [], isLoading, error }) {
                   <th className="py-2 px-2 text-left">Jenis Patroli</th>
                   <th className="py-2 px-2 text-left">Tanggal Mulai</th>
                   <th className="py-2 px-2 text-left">Tanggal Selesai</th>
-                  <th className="py-2 px-2 text-center pr-6">Aksi</th>
+                  <th className="py-2 text-center pr-6">Aksi</th>
                 </tr>
               </thead>
               <tbody>
@@ -101,11 +135,11 @@ export default function PatroliTable1({ data = [], isLoading, error }) {
                       <td className="py-2 px-2">{item.jenis_surat}</td>
                       <td className="py-2 px-2">{formatDate(item.tanggal_awal)}</td>
                       <td className="py-2 px-2">{formatDate(item.tanggal_akhir)}</td>
-                      <td className="py-2 px-2">
-                        <div className="flex items-center">
+                      <td className="py-2 text-center pr-6">
+                        <div className="flex items-center gap-2 justify-center">
                           {/* <button
-                            onClick={() => alert(`Lihat surat: ${item.nomor}`)}
-                            className="bg-blue-600 text-white hover:text-black p-2 rounded-xl hover:bg-[#0099CC]"
+                            onClick={() => setSelectedNomor(item.nomor)}
+                            className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
                           >
                             <FiEye size={18} />
                           </button> */}
@@ -113,7 +147,7 @@ export default function PatroliTable1({ data = [], isLoading, error }) {
                             onClick={() => {
                               window.location.href = `https://sipongi.menlhk.go.id/sipp-karhutla/api/karhutla/downloadPeriode?nomor_sk=${item.nomor}`;
                             }}
-                            className="bg-indigo-500 text-white hover:text-black p-2 rounded-xl hover:bg-grey-200"
+                            className="bg-indigo-500 text-white p-2 rounded hover:bg-indigo-600"
                           >
                             <FiDownload size={18} />
                           </button>
@@ -123,8 +157,8 @@ export default function PatroliTable1({ data = [], isLoading, error }) {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="5" className="py-4 text-center text-gray-500">
-                      Tidak ada data yang ditemukan.
+                    <td colSpan="5" className="text-center py-4 text-gray-500">
+                      Tidak ada data ditemukan.
                     </td>
                   </tr>
                 )}
@@ -133,27 +167,78 @@ export default function PatroliTable1({ data = [], isLoading, error }) {
           </div>
         )}
 
-        {/* Pagination area */}
-        {isLoading ? (
-          <p className="text-center mt-4 text-gray-500">Loading data...</p>
-        ) : totalEntries === 0 ? (
-          <p className="text-center mt-4 text-gray-500">No data available.</p>
-        ) : (
-          <div className="flex justify-between items-center mt-4 flex-wrap gap-2">
-            <p className="text-sm text-accent">
-              Show {startIndex + 1} to {Math.min(startIndex + entriesPerPage, totalEntries)} of {totalEntries} entries
-            </p>
-
-            <CustomPagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-              delta={2}
-              className="justify-end w-fit text-accent"
-            />
-          </div>
-        )}
+        {/* Pagination */}
+        <div className="flex justify-between items-center mt-4 flex-wrap gap-2">
+          <p className="text-sm text-accent">
+            Show {startIndex + 1} to {Math.min(startIndex + entriesPerPage, totalEntries)} of {totalEntries} entries
+          </p>
+          <CustomPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            delta={2}
+            className="justify-end w-fit text-accent"
+          />
+        </div>
       </div>
+
+      {/* Modal Detail
+      {selectedNomor && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50"
+          onClick={handleOutsideClick}
+        >
+          <div ref={modalRef} className="bg-white p-6 rounded-xl w-full max-w-5xl shadow-xl relative">
+            <h2 className="text-lg font-bold mb-4">Detail Surat Tugas - {selectedNomor}</h2>
+
+            {loadingDetail ? (
+              <p className="text-center py-6">Loading...</p>
+            ) : errorDetail ? (
+              <p className="text-center text-red-500 py-6">{errorDetail}</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full border text-sm">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="border px-3 py-2">Nomor Daops</th>
+                      <th className="border px-3 py-2">Daerah Patroli</th>
+                      <th className="border px-3 py-2">Ketua</th>
+                      <th className="border px-3 py-2">Tanggal Patroli</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {detailData.length > 0 ? (
+                      detailData.map((item) => (
+                        <tr key={item.id} className="hover:bg-gray-50">
+                          <td className="border px-3 py-2">{item.nama_daops}</td>
+                          <td className="border px-3 py-2">{item.nama_daerah_ptroli}</td>
+                          <td className="border px-3 py-2">{item.nama_ketua}</td>
+                          <td className="border px-3 py-2">{item.tanggal_patroli}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="7" className="text-center py-4">
+                          Tidak ada data regu.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            <div className="text-right mt-4">
+              <button
+                onClick={() => setSelectedNomor(null)}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )} */}
     </div>
   );
 }

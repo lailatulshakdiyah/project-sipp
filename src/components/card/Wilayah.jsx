@@ -22,7 +22,7 @@ export default function Wilayah() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
-  const [selectedCategory, setSelectedCategory] = useState("Posko");
+  const [selectedCategory, setSelectedCategory] = useState("Korwil");
   const [dataOptions, setDataOptions] = useState({});
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -173,43 +173,43 @@ export default function Wilayah() {
       case "Balai":
         return (
           <>
-            <td className="py-2">{createCell(item.kode, "kode")}</td>
-            <td className="py-2">{createCell(item.nama, "nama")}</td>
-            <td className="py-2">{item.wilayah}</td>
+            <td className="py-2 px-4">{createCell(item.kode, "kode")}</td>
+            <td className="py-2 px-4">{createCell(item.nama, "nama")}</td>
+            <td className="py-2 px-4">{item.wilayah}</td>
           </>
         );
       case "Korwil":
         return (
           <>
-            <td className="py-2">{createCell(item.kode, "kode")}</td>
-            <td className="py-2">{createCell(item.nama, "nama")}</td>
-            <td className="py-2">{item.daops}</td>
+            <td className="py-2 px-4">{createCell(item.kode, "kode")}</td>
+            <td className="py-2 px-4">{createCell(item.nama, "nama")}</td>
+            <td className="py-2 px-4">{item.daops}</td>
           </>
         );
       case "Daops":
         return (
           <>
-            <td className="py-2">{createCell(item.kode, "kode")}</td>
-            <td className="py-2">{createCell(item.nama, "nama")}</td>
-            <td className="py-2">{item.balai}</td>
+            <td className="py-2 px-4">{createCell(item.kode, "kode")}</td>
+            <td className="py-2 px-4">{createCell(item.nama, "nama")}</td>
+            <td className="py-2 px-4">{item.balai}</td>
           </>
         );
       case "Posko":
         return (
           <>
-            <td className="py-2">{item.nama}</td>
-            <td className="py-2">{item.daops}</td>
-            <td className="py-2">{item.kecamatan}</td>
+            <td className="py-2 px-4">{item.nama}</td>
+            <td className="py-2 px-4">{item.daops}</td>
+            <td className="py-2 px-4">{item.kecamatan}</td>
           </>
         );
       case "Wilayah":
         return (
           <>
-            <td className="py-2">{item.kode}</td>
-            <td className="py-2">{item.desa}</td>
-            <td className="py-2">{item.kecamatan}</td>
-            <td className="py-2">{item.kabupaten}</td>
-            <td className="py-2">{item.provinsi}</td>
+            <td className="py-2 px-4">{item.kode}</td>
+            <td className="py-2 px-4">{item.desa}</td>
+            <td className="py-2 px-4">{item.kecamatan}</td>
+            <td className="py-2 px-4">{item.kabupaten}</td>
+            <td className="py-2 px-4">{item.provinsi}</td>
           </>
         );
       default:
@@ -227,7 +227,7 @@ export default function Wilayah() {
               setSelectedCategory(category);
               setCurrentPage(1);
             }}
-            className={`px-4 py-2 border rounded-xl ${
+            className={`px-4 py-2 border rounded ${
               selectedCategory === category ? "bg-blue-500 text-white" : "hover:bg-gray-200"
             }`}
           >
@@ -270,7 +270,7 @@ export default function Wilayah() {
                 setShowModal(true);
                 setNewData({});
               }}
-              className="bg-blue-500 text-white p-2 rounded-xl hover:bg-blue-700"
+              className="bg-blue-500 text-white p-2 rounded hover:bg-blue-700"
             >
               <FaPlus />
             </button>
@@ -283,7 +283,12 @@ export default function Wilayah() {
           <thead>
             <tr className="border-b bg-gray-100">
               {headers[selectedCategory].map((header) => (
-                <th key={header} className="py-2 text-left">{header}</th>
+                <th
+                  key={header}
+                  className={`py-2 px-4 ${header === "Aksi" ? "text-center w-[140px]" : "text-left"}`}
+                >
+                  {header}
+                </th>
               ))}
             </tr>
           </thead>
@@ -292,45 +297,47 @@ export default function Wilayah() {
               <tr key={index} className="border-b hover:bg-gray-50">
                 {renderTableRow(editIndex === index ? editedData : item, index === editIndex)}
                 {selectedCategory !== "Posko" && selectedCategory !== "Wilayah" && (
-                  <td className="py-2 flex gap-2">
-                    {editIndex === index ? (
+                  <td className="py-2 text-center">
+                    <div className="flex justify-center gap-2 items-center">
+                      {/* {editIndex === index ? (
+                        <button
+                          onClick={() => {
+                            setEditIndex(null);
+                            setEditedData({});
+                          }}
+                          className="bg-green-600 text-white p-2 rounded-xl hover:bg-green-800"
+                        >
+                          Simpan
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setEditIndex(index);
+                            setEditedData({ ...selectedData[index] });
+                          }}
+                          className="bg-[#DF6D14] text-white p-2 rounded-xl hover:bg-[#FCF596] hover:text-black"
+                        >
+                          <FiEdit size={20} />
+                        </button>
+                      )} */}
                       <button
-                        onClick={() => {
-                          setEditIndex(null);
-                          setEditedData({});
-                        }}
-                        className="bg-green-600 text-white p-2 rounded-xl hover:bg-green-800"
-                      >
-                        Simpan
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          setEditIndex(index);
-                          setEditedData({ ...selectedData[index] });
-                        }}
-                        className="bg-[#DF6D14] text-white p-2 rounded-xl hover:bg-[#FCF596] hover:text-black"
-                      >
-                        <FiEdit size={20} />
-                      </button>
-                    )}
-                    <button
-                      onClick={async () => {
-                        const confirmDelete = confirm("Yakin Ingin Menghapus Data?");
-                        if (!confirmDelete) return;
+                        onClick={async () => {
+                          const confirmDelete = confirm("Yakin Ingin Menghapus Data?");
+                          if (!confirmDelete) return;
 
-                        try {
-                          await deleteCategoryData(selectedCategory, item.id);
-                          const updated = await getCategoryData(selectedCategory);
-                          setDataOptions((prev) => ({ ...prev, [selectedCategory]: updated }));
-                        } catch (err) {
-                          alert("Gagal menghapus data: " + err.message);
-                        }
-                      }}
-                      className="bg-red-600 text-white p-2 rounded-xl hover:bg-[#FFA09B] hover:text-black"
-                    >
-                      <FiTrash2 size={20} />
-                    </button>
+                          try {
+                            await deleteCategoryData(selectedCategory, item.id);
+                            const updated = await getCategoryData(selectedCategory);
+                            setDataOptions((prev) => ({ ...prev, [selectedCategory]: updated }));
+                          } catch (err) {
+                            alert("Gagal menghapus data: " + err.message);
+                          }
+                        }}
+                        className="bg-red-600 text-white p-2 rounded hover:text-black"
+                      >
+                        <FiTrash2 size={20} />
+                      </button>
+                    </div>
                   </td>
                 )}
               </tr>

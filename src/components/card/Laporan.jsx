@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 
-const ReportSection = ({ 
-  title, 
-  description, 
-  titleClass = "text-lg font-semibold", 
-  descriptionClass = "text-sm text-gray-500" 
+const ReportSection = ({
+  title,
+  downloadUrl,        
+  filenamePrefix, 
+  limitRange = true,    
+  titleClass = "text-lg font-semibold",
+  descriptionClass = "text-sm text-gray-500",
 }) => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -17,17 +19,32 @@ const ReportSection = ({
       return;
     }
 
-    if (new Date(endDate) < new Date(startDate)) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (end < start) {
       alert("Tanggal selesai harus lebih besar dari tanggal mulai!");
       return;
     }
 
-    if ((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24) > 7) {
-      alert("Maksimal rentang tanggal adalah 7 hari!");
-      return;
+    if (limitRange) {
+      const rangeInDays = (end - start) / (1000 * 60 * 60 * 24);
+      if (rangeInDays > 7) {
+        alert("Maksimal rentang tanggal adalah 7 hari!");
+        return;
+      }
     }
 
-    alert(`Mengunduh laporan: ${title}\nDari: ${startDate} - Sampai: ${endDate}`);
+    const fullUrl = `${downloadUrl}?start=${startDate}&end=${endDate}`;
+    const filename = `${filenamePrefix}_${startDate}_sampai_${endDate}.xlsx`;
+
+    const a = document.createElement("a");
+    a.href = fullUrl;
+    a.download = filename;
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   return (
@@ -38,8 +55,12 @@ const ReportSection = ({
       {/* Description */}
       <p className={descriptionClass}>
         Silakan pilih rentang tanggal rekapitulasi laporan dengan memilih <strong>Tanggal Mulai</strong> dan <strong>Tanggal Selesai</strong>.
-        <br />
-        <span className="text-red-500 text-sm">*Maksimal rentang tanggal adalah 7 hari.</span>
+        {limitRange && (
+          <>
+            <br />
+            <span className="text-red-500 text-sm">*Maksimal rentang tanggal adalah 7 hari.</span>
+          </>
+        )}
       </p>
 
       {/* Form Input Tanggal dan Tombol */}
@@ -78,23 +99,27 @@ const ReportSection = ({
   );
 };
 
-const Laporan = () => {
+export default function Laporan() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <ReportSection 
-        title="Rekapitulasi Laporan Per Rentang Tanggal" 
-        description="Silakan pilih rentang tanggal rekapitulasi laporan dengan memilih Tanggal Mulai dan Tanggal Selesai."
-        titleClass="text-xl font-bold text-accent" 
+      <ReportSection
+        title="Rekapitulasi Laporan Per Rentang Tanggal"
+        description="Silakan pilih rentang tanggal laporan."
+        downloadUrl="https://sipongi.menlhk.go.id/sipp-karhutla/api/karhutla/downloadrange"
+        filenamePrefix="Rekap_Laporan_Patroli"
+        titleClass="text-xl font-bold text-accent"
         descriptionClass="text-base text-gray-600"
+        limitRange={true}
       />
-      <ReportSection 
-        title="Laporan Ringkasan Patroli" 
-        description="Silakan pilih rentang tanggal rekapitulasi laporan dengan memilih Tanggal Mulai dan Tanggal Selesai."
-        titleClass="text-xl font-bold text-accent" 
+      <ReportSection
+        title="Laporan Ringkasan Patroli"
+        description="Silakan pilih rentang tanggal laporan ringkasan patroli tanpa batas maksimal rentang hari."
+        downloadUrl="https://sipongi.menlhk.go.id/sipp-karhutla/api/simadu/downloadRingkasan"
+        filenamePrefix="Ringkasan_Patroli"
+        titleClass="text-xl font-bold text-accent"
         descriptionClass="text-base text-gray-600"
+        limitRange={false}
       />
     </div>
   );
 };
-
-export default Laporan;

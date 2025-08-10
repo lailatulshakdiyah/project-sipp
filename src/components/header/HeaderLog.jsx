@@ -39,7 +39,7 @@ export default function HeaderLog() {
         isLoggedIn: true,
       });
 
-      document.cookie = `authToken=${response.token}; path=/; max-age=3600`; // 1 jam
+      document.cookie = `authToken=${response.token}; path=/; max-age=3600 secure; sameSite=stric`; // 1 jam
       localStorage.setItem('authToken', response.token);
 
       setOpen(false);
