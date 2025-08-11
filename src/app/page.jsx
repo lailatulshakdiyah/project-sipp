@@ -26,15 +26,22 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const updateOnlineStatus = () => {
+    if (typeof navigator !== 'undefined') {
+      setIsOnline(navigator.onLine)
+    }
+  }
+
   useEffect(() => {
-    const updateOnlineStatus = () => setIsOnline(navigator.onLine);
-    updateOnlineStatus();
-    window.addEventListener("online", updateOnlineStatus);
-    window.addEventListener("offline", updateOnlineStatus);
-    return () => {
-      window.removeEventListener("online", updateOnlineStatus);
-      window.removeEventListener("offline", updateOnlineStatus);
-    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener("online", updateOnlineStatus);
+      window.addEventListener("offline", updateOnlineStatus);
+
+      return () => {
+        window.removeEventListener("online", updateOnlineStatus);
+        window.removeEventListener("offline", updateOnlineStatus);
+      };
+    }
   }, []);
 
   const fetchData = async (tanggal) => {

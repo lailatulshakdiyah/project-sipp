@@ -31,7 +31,6 @@ export default function KegiatanPatroli({ data, isLoading, error, onFlyTo }) {
     "Pemadaman": "#FF0000",
   };
 
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div className="bg-white shadow-xl rounded-xl p-6">
@@ -102,7 +101,7 @@ export default function KegiatanPatroli({ data, isLoading, error, onFlyTo }) {
                         <div className="flex justify-center gap-3">
                           <button 
                             onClick={() => {
-                              if (item.lat && item.lng && item.kode_laporan) {
+                              if (onFlyTo?.current && typeof onFlyTo.current === "function") {
                                 onFlyTo.current(item.lat, item.lng, item.kode_laporan);
                               }
                             }}
@@ -111,8 +110,10 @@ export default function KegiatanPatroli({ data, isLoading, error, onFlyTo }) {
                           </button>
                           <button
                             onClick={() => {
-                              const pdfUrl = `https://sipongi.menlhk.go.id/sipp-karhutla/api/karhutla/download/${item.kode_laporan}`
-                              window.open(pdfUrl, '_blank')
+                              if (typeof window !== 'undefined') {
+                                const pdfUrl = `https://sipongi.menlhk.go.id/sipp-karhutla/api/karhutla/download/${item.kode_laporan}`;
+                                window.open(pdfUrl, '_blank');
+                              }
                             }}
                             className="bg-indigo-500 hover:bg-grey-200 text-white hover:text-black p-2 rounded transition-colors"
                           >

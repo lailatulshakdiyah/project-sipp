@@ -75,6 +75,30 @@ export default function PatroliTable1({ data = [], isLoading, error }) {
     }
   };
 
+  const handleDownload = async (nomor) => {
+    if (!nomor) return;
+    try {
+      const url = `https://sipongi.menlhk.go.id/sipp-karhutla/api/karhutla/downloadPeriode?nomor_sk=${encodeURIComponent(nomor)}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Gagal mengunduh file");
+      const blob = await res.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = `${nomor}.xlsx`; // Excel
+      document.body.appendChild(link);
+      link.click();
+
+      // Bersihkan
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error(error);
+      alert("Terjadi kesalahan saat mengunduh file");
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div className="bg-white shadow-xl rounded-xl p-6">
@@ -144,9 +168,7 @@ export default function PatroliTable1({ data = [], isLoading, error }) {
                             <FiEye size={18} />
                           </button> */}
                           <button
-                            onClick={() => {
-                              window.location.href = `https://sipongi.menlhk.go.id/sipp-karhutla/api/karhutla/downloadPeriode?nomor_sk=${item.nomor}`;
-                            }}
+                            onClick={() => handleDownload(item.nomor)}
                             className="bg-indigo-500 text-white p-2 rounded hover:bg-indigo-600"
                           >
                             <FiDownload size={18} />

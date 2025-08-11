@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react'
 import Header from '@/components/header/Header'
-// import Footer from '@/components/footer/Footer'
 import Akses from '@/components/card/Akses'
 
 export default function page() {
@@ -14,6 +13,14 @@ export default function page() {
   });
 
   const [isLoading, setIsLoading] = useState(true);
+
+  const roleCategoryMap = {
+    daops: "Daops",
+    korwil: "Korwil",
+    balai: "Balai",
+    pusat: "Pusat",
+    super: "Pusat",
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -51,20 +58,24 @@ export default function page() {
             hakAkses: item.r_role?.nama || '',
           };
 
-          if (roleName.includes('daops')) {
-            categorized.Daops.push(parsedItem);
-          } else if (roleName.includes('korwil')) {
-            categorized.Korwil.push(parsedItem);
-          } else if (roleName.includes('balai')) {
-            categorized.Balai.push(parsedItem);
-          } else if (roleName.includes('pusat') || roleName.includes('super')) {
-            categorized.Pusat.push(parsedItem);
+          const categoryKey = Object.keys(roleCategoryMap).find((key) =>
+            roleName.includes(key)
+          );
+
+          if (categoryKey) {
+            categorized[roleCategoryMap[categoryKey]].push(parsedItem);
           }
         });
 
         setCategorizedData(categorized);
       } catch (error) {
         console.error('Gagal fetch data:', error);
+        setCategorizedData({
+          Daops: [],
+          Korwil: [],
+          Balai: [],
+          Pusat: [],
+        });
       } finally {
         setIsLoading(false);
       }
@@ -80,13 +91,11 @@ export default function page() {
 
       <div>
         {isLoading ? (
-          <p className='text-center mt-10'>Memuat data...</p>
+          <p className='text-center mt-10'>Loading data...</p>
         ) : (
           <Akses categorizedData={categorizeData} />
         )}
       </div>
-
-      {/* <Footer/> */}
     </main>
   )
 }
