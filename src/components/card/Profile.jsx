@@ -6,7 +6,7 @@ import { useAuthStore } from "@/lib/store/authStore";
 
 export default function Profile() {
   const userDetail = useAuthStore((state) => state.detail);
-  const token = useAuthStore((state) => state.token);
+  // const token = useAuthStore((state) => state.token);
   // const user = useAuthStore((state) => state.user);
 
   const [profile, setProfile] = useState({
@@ -57,51 +57,10 @@ export default function Profile() {
     setPasswords({ ...passwords, [e.target.name]: e.target.value });
   };
 
-  const handleSubmitProfile = async (e) => {
+  const handleSubmitProfile = (e) => {
     e.preventDefault();
-
-    try {
-      const formData = new FormData();
-      formData.append("username", userDetail.username || "");
-      formData.append("password", userDetail.passwords || "");
-      formData.append("accessLevel", profile.accessLevel);
-      formData.append("registrationNumber", profile.registrationNumber);
-      formData.append("name", profile.name);
-      formData.append("email", profile.email);
-      formData.append("phone", profile.phone);
-      formData.append("id", userDetail.id || "");
-      formData.append("aktif", userDetail.aktif ? "true" : "false");
-      formData.append("instansi", userDetail.instansi || "");
-
-      if (profile.photo instanceof File) {
-        formData.append("photo", profile.photo);
-      }
-
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}:`, value);
-      }
-
-      const res = await fetch("/api/proxy/sipp-karhutla/api_v2/user/save", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
-
-      const data = await res.json();
-      console.log("Update profile:", data);
-
-      if (res.ok) {
-        setShowPopup(true);
-        setTimeout(() => setShowPopup(false), 2000);
-      } else {
-        alert(`Gagal update profile: ${data.message || "Unknown error"}`);
-      }
-    } catch (error) {
-      console.error("Error update profile:", error);
-      alert("Tidak dapat terhubung ke server");
-    }
+    setShowPopup(true);
+    setTimeout(() => setShowPopup(false), 2000);
   };
 
   return (

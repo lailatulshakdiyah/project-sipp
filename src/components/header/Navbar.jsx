@@ -50,10 +50,10 @@ const navItems = [
     name: "Hotspot",
     path: "/hotspot",
   },
-  {
-    name: "Analisis",
-    path: "/analisis",
-  },
+  // {
+  //   name: "Analisis",
+  //   path: "/analisis",
+  // },
   {
     name: "Tentang Sistem",
     path: "/tentang-sistem",
