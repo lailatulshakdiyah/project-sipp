@@ -2,18 +2,27 @@
 
 import Header from "@/components/header/Header";
 import { useState, useEffect, useRef } from "react";
-import PatrolStat from "@/components/card/PatrolStat";
-import KegiatanPatroli from "@/components/card/KegiatanPatroli";
-import Map from "@/components/map/Map";
-import DateInput from "@/components/card/DateInput";
+import dynamic from "next/dynamic";
+
+const Map = dynamic(() => import("@/components/map/Map"), {
+  ssr: false,
+});
+const PatrolStat = dynamic(() => import("@/components/card/PatrolStat"), {
+  ssr: false,
+});
+const KegiatanPatroli = dynamic(
+  () => import("@/components/card/KegiatanPatroli"),
+  {
+    ssr: false,
+  }
+);
+const DateInput = dynamic(() => import("@/components/card/DateInput"), {
+  ssr: false,
+});
 
 export default function Home() {
-  const [selectedDate, setSelectedDate] = useState(() => {
-    const today = new Date().toISOString().split("T")[0];
-    return today;
-  });
-
-  const flyToRef = useRef();
+  const [selectedDate, setSelectedDate] = useState(null);
+  const flyToRef = useRef(null);
   const [markerData, setMarkerData] = useState([]);
   const [groupedData, setGroupedData] = useState({
     mandiri: 0,
@@ -26,14 +35,19 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const updateOnlineStatus = () => {
-    if (typeof navigator !== 'undefined') {
-      setIsOnline(navigator.onLine)
-    }
-  }
+  useEffect(() => {
+    const today = new Date().toISOString().split("T")[0];
+    setSelectedDate(today);
+  }, []);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    const updateOnlineStatus = () => {
+      if (typeof navigator !== "undefined") {
+        setIsOnline(navigator.onLine);
+      }
+    };
+
+    if (typeof window !== "undefined") {
       window.addEventListener("online", updateOnlineStatus);
       window.addEventListener("offline", updateOnlineStatus);
 
@@ -55,10 +69,7 @@ export default function Home() {
       );
 
       if (response.status === 503) {
-        setError("Tidak ada koneksi internet");
-        setMarkerData([]);
-        setGroupedData({ mandiri: 0, rutin: 0, terpadu: 0, pemadaman: 0 });
-        return;
+        throw new Error("Layanan sedang tidak tersedia");
       }
 
       if (!response.ok)
@@ -126,19 +137,16 @@ export default function Home() {
     } catch (err) {
       console.error("Fetch error:", err);
       setError(err.message);
-      setMarkerData([]);
-      setGroupedData({ mandiri: 0, rutin: 0, terpadu: 0, pemadaman: 0 });
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    if (isOnline) {
+    if (isOnline && selectedDate) {
       fetchData(selectedDate);
-    } else {
-      setMarkerData([]);
-      setGroupedData({ mandiri: 0, rutin: 0, terpadu: 0, pemadaman: 0 });
+    } else if (!isOnline) {
+      setError("Tidak ada koneksi internet");
     }
   }, [selectedDate, isOnline]);
 
@@ -156,11 +164,13 @@ export default function Home() {
       <Header />
 
       <div className="h-screen w-full relative z-0">
-        <Map
-          selectedDate={selectedDate}
-          markerData={markerData}
-          flyToRef={flyToRef}
-        />
+        {selectedDate && (
+          <Map
+            selectedDate={selectedDate}
+            markerData={markerData}
+            flyToRef={flyToRef}
+          />
+        )}
       </div>
 
       <div className="-mt-72 mb-10">

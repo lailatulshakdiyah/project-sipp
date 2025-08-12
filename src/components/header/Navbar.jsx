@@ -92,6 +92,7 @@ export default function Navbar() {
 
   const handleLogout = () => {
     logout();
+    localStorage.removeItem("authToken")
     router.replace("/homepage")
   };
 
@@ -140,7 +141,10 @@ export default function Navbar() {
                     return subItem.action === "logout" ? (
                       <button
                         key={subIndex}
-                        onClick={() => setIsLogoutModalOpen(true)}
+                        onClick={() => {
+                          setOpenDropdown(null)
+                          setIsLogoutModalOpen(true)
+                        }}
                         className="block w-full text-left px-4 py-2 hover:text-white hover:bg-[#0099CC] text-accent rounded-md transition-all"
                       >
                         {subItem.name}

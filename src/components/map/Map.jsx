@@ -5,18 +5,31 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { renderToStaticMarkup } from "react-dom/server";
 import { FaMapMarkerAlt } from "react-icons/fa";
-import { useEffect, useRef } from "react";
-import { MapContainer, TileLayer, Marker, Popup, LayersControl } from "react-leaflet";
+import { useEffect, useRef, useState } from "react";
+import { useMap } from "react-leaflet";
 
-// const MapContainer = dynamic(() => import("react-leaflet").then((mod) => mod.MapContainer), { ssr: false });
-// const TileLayer = dynamic(() => import("react-leaflet").then((mod) => mod.TileLayer), { ssr: false });
-// // const Marker = dynamic(() => import("react-leaflet").then((mod) => mod.Marker), { ssr: false });
-// const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), { ssr: false });
-// const LayersControl = dynamic(
-//   () => import("react-leaflet").then((mod) => mod.LayersControl), { ssr: false }
-// );
+const MapContainer = dynamic(
+  () => import("react-leaflet").then((mod) => mod.MapContainer),
+  { ssr: false }
+);
+const TileLayer = dynamic(
+  () => import("react-leaflet").then((mod) => mod.TileLayer),
+  { ssr: false }
+);
+const Marker = dynamic(
+  () => import("react-leaflet").then((mod) => mod.Marker),
+  { ssr: false }
+);
+const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), {
+  ssr: false,
+});
+const LayersControl = dynamic(
+  () => import("react-leaflet").then((mod) => mod.LayersControl),
+  { ssr: false }
+);
 const BaseLayer = dynamic(
-  () => import("react-leaflet").then((mod) => mod.LayersControl.BaseLayer), { ssr: false }
+  () => import("react-leaflet").then((mod) => mod.LayersControl.BaseLayer),
+  { ssr: false }
 );
 
 const DEFAULT_CENTER = [-2.5489, 118.0149]; // Pusat Indonesia
@@ -26,8 +39,8 @@ const aksiColorMap = {
   "Patroli Mandiri": "#006BFF",
   "Patroli Rutin": "#F9C132",
   "Patroli Terpadu": "#52AF53",
-  "Pemadaman": "#FF0000",
-}
+  Pemadaman: "#FF0000",
+};
 
 const createCustomIcon = (color) => {
   const iconMarkup = renderToStaticMarkup(
@@ -36,43 +49,79 @@ const createCustomIcon = (color) => {
 
   return L.divIcon({
     html: iconMarkup,
-    className: "", 
+    className: "",
     iconSize: [30, 30],
     iconAnchor: [15, 30],
     popupAnchor: [0, -30],
   });
-}
+};
 
 const getCustomMarkerIcon = (aksi) => {
   const color = aksiColorMap[aksi];
   return color ? createCustomIcon(color) : null;
 };
 
+function MapController({ flyToRef, markerRefs }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map || !flyToRef) return;
+    
+    console.log("MapController: Setting up flyTo function");
+    
+    flyToRef.current = (lat, lng, id) => {
+      console.log("flyTo dipanggil dengan:", lat, lng, id);
+      
+      if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
+        console.error("Koordinat tidak valid:", lat, lng);
+        return;
+      }
+      
+      try {
+        map.flyTo([lat, lng], 14, {
+          animate: true,
+          duration: 1.5
+        });
+
+        if (id && markerRefs.current[id]) {
+          setTimeout(() => {
+            if (markerRefs.current[id] && markerRefs.current[id].openPopup) {
+              markerRefs.current[id].openPopup();
+              console.log("Popup dibuka untuk marker:", id);
+            }
+          }, 1000);
+        }
+        console.log("flyTo berhasil dijalankan");
+      } catch (error) {
+        console.error("Error saat flyTo:", error);
+      }
+    };
+  }, [map, flyToRef, markerRefs]);
+
+  return null;
+}
+
 export default function Map({ markerData = [], flyToRef }) {
-  const mapRef = useRef();
+  const [isClient, setIsClient] = useState(false);
   const markerRefs = useRef({});
 
   useEffect(() => {
-    if (flyToRef) {
-      flyToRef.current = (lat, lng, kodeLaporan) => {
-        if (mapRef.current) {
-          mapRef.current.flyTo([lat, lng], 10);
-        }
+    setIsClient(true);
+  }, []);
 
-        const marker = markerRefs.current[kodeLaporan];
-        if (marker) {
-          setTimeout(() => {
-            marker.openPopup();
-          }, 600);
-        }
-      };
-    }
-  }, [flyToRef]);
+  if (!isClient) {
+    return null;
+  } 
 
   return (
     <>
       {/* <p>Total marker: {markerData.length}</p> */}
-      <MapContainer ref={mapRef} center={DEFAULT_CENTER} zoom={5} style={{ height: DEFAULT_HEIGHT, width: "100%" }}>
+      <MapContainer
+        center={DEFAULT_CENTER}
+        zoom={5}
+        style={{ height: DEFAULT_HEIGHT, width: "100%" }}
+      >
+        <MapController flyToRef={flyToRef} markerRefs={markerRefs} />
         <LayersControl position="topright">
           <BaseLayer checked name="Street Map">
             <TileLayer
@@ -84,7 +133,7 @@ export default function Map({ markerData = [], flyToRef }) {
             <TileLayer
               url="https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
               attribution="Map &copy; <a href='https://maps.google.com/'>Google</a>"
-              subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
+              subdomains={["mt0", "mt1", "mt2", "mt3"]}
               maxZoom={20}
             />
           </BaseLayer>
@@ -106,7 +155,7 @@ export default function Map({ markerData = [], flyToRef }) {
             <TileLayer
               url="https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
               attribution="Map &copy; <a href='https://maps.google.com/'>Google</a>"
-              subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
+              subdomains={["mt0", "mt1", "mt2", "mt3"]}
               maxZoom={20}
             />
           </BaseLayer>
@@ -114,19 +163,26 @@ export default function Map({ markerData = [], flyToRef }) {
             <TileLayer
               url="https://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}"
               attribution="Map &copy; <a href='https://maps.google.com/'>Google</a>"
-              subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
+              subdomains={["mt0", "mt1", "mt2", "mt3"]}
               maxZoom={20}
             />
           </BaseLayer>
         </LayersControl>
 
         {/* Render marker berdasarkan data yang di-fetch */}
-        {markerData.map((item, index) => (
-          item.lat != null && item.lng != null && (
-            <Marker
-              key={index}
-              position={[item.lat, item.lng]}
-              icon={getCustomMarkerIcon(item.aksi)}
+        {markerData?.map((item, idx) => {
+          const lat = parseFloat(item.lat);
+          const lng = parseFloat(item.lng);
+          
+          if (isNaN(lat) || isNaN(lng)) return null;
+          
+          const icon = getCustomMarkerIcon(item.aksi);
+          
+          return (
+            <Marker 
+              key={`${idx}-${item.kode_laporan}`} 
+              position={[lat, lng]}
+              icon={icon}
               ref={(el) => {
                 if (el) {
                   markerRefs.current[item.kode_laporan] = el;
@@ -135,20 +191,21 @@ export default function Map({ markerData = [], flyToRef }) {
             >
               <Popup>
                 <div className="text-sm space-y-2">
-                  <p className="text-center font-bold mb-2">{item?.nama || "-"}</p>
-                  <p><strong>Kode Laporan:</strong>  {item?.kode_laporan || "-"}</p>
-                  <p><strong>Kategori:</strong>  {item?.kegiatan || "-"}</p>
-                  <p><strong>Latitude:</strong>  {item?.lat || "-"}</p>
-                  <p><strong>Longitude:</strong>  {item?.lng || "-"}</p>
-                  <p><strong>Daops:</strong>  {item?.nama_daops || "-"}</p>
-                  <p><strong>Ketua Regu:</strong>  {item?.ketua_regu || "-"}</p>
+                  <p className="text-center font-bold mb-2">
+                    {item?.nama || "-"}
+                  </p>
+                  <p><strong>Kode Laporan:</strong> {item?.kode_laporan || "-"} </p>
+                  <p><strong>Kategori:</strong> {item?.kegiatan || "-"} </p>
+                  <p><strong>Latitude:</strong> {item?.lat || "-"} </p>
+                  <p><strong>Longitude:</strong> {item?.lng || "-"} </p>
+                  <p><strong>Daops:</strong> {item?.nama_daops || "-"} </p>
+                  <p><strong>Ketua Regu:</strong> {item?.ketua_regu || "-"} </p>
                 </div>
-                
               </Popup>
             </Marker>
           )
-        ))}
+        })}
       </MapContainer>
     </>
   );
-};
+}

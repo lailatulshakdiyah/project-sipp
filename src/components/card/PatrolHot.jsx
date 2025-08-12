@@ -4,29 +4,31 @@ import { useEffect, useState } from "react";
 import { RiFireFill } from "react-icons/ri";
 import CountUp from "react-countup";
 
-export default function PatrolHot( {hotspots} ) {
-  const [hotspotStats, setHotspotStats] = useState ({
+export default function PatrolHot({ hotspots }) {
+  const [hotspotStats, setHotspotStats] = useState({
     low: 0,
     medium: 0,
     high: 0,
   });
 
   useEffect(() => {
-  const counts = { low: 0, medium: 0, high: 0 };
+    const counts = { low: 0, medium: 0, high: 0 };
 
-  hotspots.forEach((item) => {
-    const rawConf = item?.conf?.toString().trim().toLowerCase();
-    if (rawConf === "low") counts.low++;
-    else if (rawConf === "medium") counts.medium++;
-    else if (rawConf === "high") counts.high++;
-  });
+    if (Array.isArray(hotspots)) {
+      hotspots.forEach((item) => {
+        const rawConf = item?.conf?.toString().trim().toLowerCase();
+        if (rawConf === "low") counts.low++;
+        else if (rawConf === "medium") counts.medium++;
+        else if (rawConf === "high") counts.high++;
+      });
+    }
 
-  setHotspotStats(counts);
-}, [hotspots]);
+    setHotspotStats(counts);
+  }, [hotspots]);
 
   const patrolData = [
     {
-      icon: <RiFireFill size={80} className="text-[#52AF53]" />, 
+      icon: <RiFireFill size={80} className="text-[#52AF53]" />,
       count: hotspotStats.low,
       description: "Low",
     },
@@ -57,7 +59,9 @@ export default function PatrolHot( {hotspots} ) {
                 <CountUp end={item.count} duration={1.5} />
               </p>
               {/* Deskripsi */}
-              <p className="text-accent text-md font-semibold">{item.description}</p>
+              <p className="text-accent text-md font-semibold">
+                {item.description}
+              </p>
             </div>
           </div>
         ))}

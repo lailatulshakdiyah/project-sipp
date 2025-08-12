@@ -100,9 +100,25 @@ export default function KegiatanPatroli({ data, isLoading, error, onFlyTo }) {
                       <td className="py-2 px-4 text-center pr-6">
                         <div className="flex justify-center gap-3">
                           <button 
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.preventDefault();
+                              console.log("Marker clicked:", item.lat, item.lng);
+                              
+                              // Periksa apakah koordinat valid
+                              if (!item.lat || !item.lng) {
+                                console.error("Invalid coordinates:", item.lat, item.lng);
+                                return;
+                              }
+                              
+                              // Coba kedua cara - sebagai ref atau fungsi langsung
                               if (onFlyTo?.current && typeof onFlyTo.current === "function") {
-                                onFlyTo.current(item.lat, item.lng, item.kode_laporan);
+                                console.log("Calling onFlyTo as ref");
+                                onFlyTo.current(item.lat, item.lng);
+                              } else if (typeof onFlyTo === "function") {
+                                console.log("Calling onFlyTo directly");
+                                onFlyTo(item.lat, item.lng);
+                              } else {
+                                console.error("onFlyTo is not properly defined:", onFlyTo);
                               }
                             }}
                           >

@@ -6,7 +6,14 @@ import Image from "next/image";
 import favicon from "@/assets/img/sipp-favicon.png";
 import { Button } from "../ui/button";
 import { TbLogin2 } from "react-icons/tb";
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
@@ -20,12 +27,12 @@ export default function HeaderLog() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const setAuth = useAuthStore((state) => state.setAuth);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(""); 
+    setError("");
     setIsSubmitting(true);
 
     const response = await login({ username, password });
@@ -40,7 +47,7 @@ export default function HeaderLog() {
       });
 
       document.cookie = `authToken=${response.token}; path=/; max-age=3600 secure; sameSite=stric`; // 1 jam
-      localStorage.setItem('authToken', response.token);
+      localStorage.setItem("authToken", response.token);
 
       setOpen(false);
       setIsSubmitting(false);
@@ -63,30 +70,51 @@ export default function HeaderLog() {
       {/* Login Modal */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button size="lg" className="bg-[#00CCFF] text-accent rounded-xl hover:bg-[#AFE2F8]">
+          <Button
+            size="lg"
+            className="bg-[#00CCFF] text-accent rounded-xl hover:bg-[#AFE2F8]"
+          >
             <TbLogin2 className="text-xl" />
             <span className="text-md">Login</span>
           </Button>
         </DialogTrigger>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className='text-accent text-xl'>Login</DialogTitle>
-            <DialogDescription>Masukkan Email dan Password Anda !</DialogDescription>
+            <DialogTitle className="text-accent text-xl">Login</DialogTitle>
+            <DialogDescription>
+              Masukkan Email dan Password Anda !
+            </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2 text-accent">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" name="email" type="email" placeholder="example@mail.com" value={username} onChange={(e) => setUsername(e.target.value)} required />
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="example@mail.com"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+              />
             </div>
             <div className="space-y-2 text-accent">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" name="password" type="password" placeholder="******" value={password} onChange={(e) => setPassword(e.target.value)} required />
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                placeholder="******"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
             </div>
 
             {error && <p className="text-red-500 text-sm">{error}</p>}
 
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full rounded-xl bg-[#0099CC] text-white text-md"
               disabled={isSubmitting}
             >
@@ -97,4 +125,4 @@ export default function HeaderLog() {
       </Dialog>
     </div>
   );
-};
+}

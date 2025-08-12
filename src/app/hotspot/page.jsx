@@ -1,22 +1,32 @@
-"use client"
+"use client";
 
-import PatrolHotspot from '@/components/card/PatrolHot'
-import Header from '@/components/header/Header'
-import MapHots from '@/components/map/MapHots'
-import React, { useEffect, useState } from 'react'
+import dynamic from "next/dynamic";
+import Header from "@/components/header/Header";
+import React, { useEffect, useState } from "react";
 
-export default function page() {
+const MapHots = dynamic(() => import("@/components/map/MapHots"), {
+  ssr: false,
+});
+const PatrolHotspot = dynamic(() => import("@/components/card/PatrolHot"), {
+  ssr: false,
+});
+
+export default function HotspotPage() {
   const [hotspots, setHotspots] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchHotspotData = async () => {
-      try{
+      try {
+        setIsLoading(true);
         const res = await fetch("https://fwd.agricodex.id/hotspot.php");
         const data = await res.json();
         console.log("Semua data hotspot:", data);
         setHotspots(data);
       } catch (err) {
         console.error("Gagal mengambil data hotspot:", err);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -33,8 +43,8 @@ export default function page() {
       </div>
 
       <div className="mb-12 -mt-80">
-          <PatrolHotspot hotspots={hotspots} />
+        <PatrolHotspot hotspots={hotspots} />
       </div>
     </main>
-  )
+  );
 }

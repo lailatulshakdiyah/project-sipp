@@ -52,10 +52,10 @@ const navItems = [
     name: "Hotspot",
     path: "/hotspot",
   },
-  {
-    name: "Analisis",
-    path: "/analisis",
-  },
+  // {
+  //   name: "Analisis",
+  //   path: "/analisis",
+  // },
   {
     name: "Tentang Sistem",
     path: "/tentang-sistem",
@@ -80,7 +80,7 @@ const navItems = [
   },
 ];
 
-const MobileNav = () => {
+export default function MobileNav() {
   const pathname = usePathname();
 
   return (
@@ -141,5 +141,3 @@ const MobileNav = () => {
     </Sheet>
   );
 };
-
-export default MobileNav;
